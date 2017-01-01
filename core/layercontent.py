@@ -45,6 +45,7 @@ class LayerContent(object):
         self.tool_diameter = g.config.vars.Tool_Parameters['1']['diameter']
         self.speed = g.config.vars.Tool_Parameters['1']['speed']
         self.start_radius = g.config.vars.Tool_Parameters['1']['start_radius']
+        self.exp_order_complete = [1]
 
         # preset defaults
         self.axis3_retract = g.config.vars.Depth_Coordinates['axis3_retract']

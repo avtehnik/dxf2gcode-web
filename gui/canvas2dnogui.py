@@ -94,7 +94,6 @@ class MyNoGraphicsScene():
         """
         for shape in shapes:
             self.paint_shape(shape)
-            # self.addItem(shape)
             self.shapes.append(shape)
         self.draw_wp_zero()
         self.update()
@@ -118,19 +117,7 @@ class MyNoGraphicsScene():
         Create all plotting related parts of one shape.
         @param shape: The shape to be plotted.
         """
-        start, start_ang = shape.get_start_end_points(True, True)
-        # drawHorLine = lambda caller, start, end: shape.path.lineTo(end.x, -end.y)
-        # drawVerLine = lambda caller, start: None  # Not used in 2D mode
-        # shape.make_path(drawHorLine, drawVerLine)
-
-        # self.BB = self.BB.joinBB(shape.BB)
-
         shape.stmove = self.createstmove(shape)
-        # shape.starrow = self.createstarrow(shape)
-        # shape.enarrow = self.createenarrow(shape)
-        # shape.stmove.setParentItem(shape)
-        # shape.starrow.setParentItem(shape)
-        # shape.enarrow.setParentItem(shape)
 
     def draw_wp_zero(self):
         """
@@ -236,13 +223,6 @@ class ShapeNoGUI(Shape):
         @return: Gives the Bounding Box
         """
         return self.path.boundingRect()
-
-    # def shape(self):
-    #     """
-    #     Reimplemented function to select outline only.
-    #     @return: Returns the Outline only
-    #     """
-    #     return stroke
 
 
 class StMoveNoGUI(StMove):

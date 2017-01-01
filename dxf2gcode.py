@@ -136,8 +136,6 @@ class MainWindow(QMainWindow):
 
         self.d2g = Project(self)
 
-        self.createActions()
-        self.connectToolbarToConfig()
 
         self.filename = ""
 
@@ -161,46 +159,6 @@ class MainWindow(QMainWindow):
         @return: the translated unicode string if it was possible to translate
         """
         return text_type(string_to_translate)
-
-    def createActions(self):
-        """
-        Create the actions of the main toolbar.
-        @purpose: Links the callbacks to the actions in the menu
-        """
-
-        # File
-        self.ui.actionOpen.triggered.connect(self.open)
-        self.ui.actionReload.triggered.connect(self.reload)
-        self.ui.actionClose.triggered.connect(self.close)
-
-        # Export
-        self.ui.actionOptimizePaths.triggered.connect(self.optimizeTSP)
-        self.ui.actionExportShapes.triggered.connect(self.exportShapes)
-        self.ui.actionOptimizeAndExportShapes.triggered.connect(self.optimizeAndExportShapes)
-
-        # View
-        self.ui.actionShowPathDirections.triggered.connect(self.setShowPathDirections)
-        # We need toggled (and not triggered), otherwise the signal is not
-        # emitted when state is changed programmatically
-        self.ui.actionShowDisabledPaths.toggled.connect(self.setShowDisabledPaths)
-        self.ui.actionLiveUpdateExportRoute.toggled.connect(self.liveUpdateExportRoute)
-        self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
-        self.ui.actionAutoscale.triggered.connect(self.canvas.autoscale)
-        # Options
-        self.ui.actionConfiguration.triggered.connect(self.config_window.show)
-        self.ui.actionConfigurationPostprocessor.triggered.connect(self.MyPostProcessor.config_postpro_window.show)
-        self.ui.actionTolerances.triggered.connect(self.setTolerances)
-        self.ui.actionRotateAll.triggered.connect(self.rotateAll)
-        self.ui.actionScaleAll.triggered.connect(self.scaleAll)
-        self.ui.actionMoveWorkpieceZero.triggered.connect(self.moveWorkpieceZero)
-        self.ui.actionSplitLineSegments.toggled.connect(self.d2g.small_reload)
-        self.ui.actionAutomaticCutterCompensation.toggled.connect(self.d2g.small_reload)
-        self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
-        self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
-        self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
-
-        # Help
-        self.ui.actionAbout.triggered.connect(self.about)
 
     def connectToolbarToConfig(self, project=False, block_signals=True):
         # View
@@ -244,28 +202,6 @@ class MainWindow(QMainWindow):
             self.canvas.isMultiSelect = False
         elif event.key() == QtCore.Qt.Key_Shift:
             self.canvas.setDragMode(QGraphicsView.NoDrag)
-
-    def enableToolbarButtons(self, status=True):
-        # File
-        self.ui.actionReload.setEnabled(status)
-        self.ui.actionSaveProjectAs.setEnabled(status)
-
-        # Export
-        self.ui.actionOptimizePaths.setEnabled(status)
-        self.ui.actionExportShapes.setEnabled(status)
-        self.ui.actionOptimizeAndExportShapes.setEnabled(status)
-
-        # View
-        self.ui.actionShowPathDirections.setEnabled(status)
-        self.ui.actionShowDisabledPaths.setEnabled(status)
-        self.ui.actionLiveUpdateExportRoute.setEnabled(status)
-        self.ui.actionAutoscale.setEnabled(status)
-
-        # Options
-        self.ui.actionTolerances.setEnabled(status)
-        self.ui.actionRotateAll.setEnabled(status)
-        self.ui.actionScaleAll.setEnabled(status)
-        self.ui.actionMoveWorkpieceZero.setEnabled(status)
 
     def deleteG0Paths(self):
         """
@@ -406,35 +342,6 @@ class MainWindow(QMainWindow):
 
         self.unsetCursor()
 
-    def automaticCutterCompensation(self):
-        if self.ui.actionAutomaticCutterCompensation.isEnabled() and\
-           self.ui.actionAutomaticCutterCompensation.isChecked():
-            for layerContent in self.layerContents.non_break_layer_iter():
-                if layerContent.automaticCutterCompensationEnabled():
-                    new_exp_order = []
-                    outside_compensation = True
-                    shapes_left = layerContent.shapes
-                    while len(shapes_left) > 0:
-                        shapes_left = [shape for shape in shapes_left
-                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation, new_exp_order)]
-                        outside_compensation = not outside_compensation
-                    layerContent.exp_order = list(reversed(new_exp_order))
-        self.TreeHandler.updateTreeViewOrder()
-        self.canvas_scene.update()
-
-    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation, new_exp_order):
-        if not isinstance(shape, CustomGCode):
-            for outerShape in shapes_left:
-                if self.isShapeContained(shape, outerShape):
-                    return False
-            if outside_compensation == shape.cw:
-                shape.cut_cor = 41
-            else:
-                shape.cut_cor = 42
-            self.canvas_scene.repaint_shape(shape)
-        new_exp_order.append(shape.nr)
-        return True
-
     def isShapeContained(self, shape, outerShape):
         return shape != outerShape and not \
             isinstance(outerShape, CustomGCode) and\
@@ -490,23 +397,6 @@ class MainWindow(QMainWindow):
 
         AboutDialog(title=self.tr("About DXF2GCODE"), message=message)
 
-    def setShowPathDirections(self):
-        """
-        This function is called by the menu "Show all path directions" of the
-        main and forwards the call to Canvas.setShow_path_direction()
-        """
-        # flag = self.ui.actionShowPathDirections.isChecked()
-        # self.canvas.setShowPathDirections(flag)
-        # self.canvas_scene.update()
-
-    def setShowDisabledPaths(self):
-        """
-        This function is called by the menu "Show disabled paths" of the
-        main and forwards the call to Canvas.setShow_disabled_paths()
-        """
-        # flag = self.ui.actionShowDisabledPaths.isChecked()
-        # self.canvas_scene.setShowDisabledPaths(flag)
-        # self.canvas_scene.update()
 
     def liveUpdateExportRoute(self):
         """
@@ -690,23 +580,7 @@ class MainWindow(QMainWindow):
 
         # Paint the canvas
         self.canvas_scene = MyNoGraphicsScene()
-        # self.canvas.setScene(self.canvas_scene)
-
         self.canvas_scene.plotAll(self.shapes)
-        self.setShowPathDirections()
-        self.setShowDisabledPaths()
-        self.liveUpdateExportRoute()
-
-        # self.canvas.show()
-        # self.canvas.setFocus()
-        # self.canvas.autoscale()
-
-        # After all is plotted enable the Menu entities
-        # self.enableToolbarButtons()
-
-        self.automaticCutterCompensation()
-
-        self.unsetCursor()
 
     def reload(self):
         """
