@@ -76,6 +76,12 @@ else:
 
 logger = logging.getLogger()
 
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
 # Get folder of the main instance and write into globals
 g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
 if os.path.islink(sys.argv[0]):
@@ -156,8 +162,7 @@ class MainWindow(QMainWindow):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('MainWindow',
-                                                           string_to_translate))
+        return text_type(string_to_translate)
 
     def createActions(self):
         """

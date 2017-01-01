@@ -93,8 +93,7 @@ class MyGraphicsView(CanvasBase):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('MyGraphicsView',
-                                                           string_to_translate))
+        return text_type(string_to_translate)
 
     def contextMenuEvent(self, event):
         """
@@ -287,8 +286,7 @@ class MyGraphicsScene(QGraphicsScene):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('MyGraphicsScene',
-                                                           string_to_translate))
+        return text_type(string_to_translate)
 
     def plotAll(self, shapes):
         """
@@ -492,7 +490,7 @@ class ShapeGUI(QGraphicsItem, Shape):
         return super(ShapeGUI, self).__str__()
 
     def tr(self, string_to_translate):
-        return super(ShapeGUI, self).tr(string_to_translate)
+        return text_type(string_to_translate)
 
     def contains_point(self, point):
         """

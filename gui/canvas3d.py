@@ -104,8 +104,7 @@ class GLWidget(CanvasBase):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QCoreApplication.translate('GLWidget',
-                                                    string_to_translate))
+        return text_type(string_to_translate)
 
     def resetAll(self):
         # the wpzero is currently generated "last"

@@ -68,8 +68,7 @@ class GeoentCircle(object):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('GeoentCircle',
-                                                           string_to_translate))
+        return text_type(string_to_translate)
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         cont.append(ContourClass(len(cont), 1, [[i, 0]], self.length))

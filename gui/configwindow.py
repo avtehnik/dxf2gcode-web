@@ -201,7 +201,7 @@ class ConfigWindow(QDialog):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('ConfigWindow', string_to_translate))
+        return text_type(string_to_translate)
 
 
     def setEditInProgress(self, edit_mode):
