@@ -146,8 +146,6 @@ CONFIG_SPEC = str('''
     f_g1_depth = float(default = 150)
 
     [General]
-    # Enable 3D representation of the piece (requires PyQt5 and OpenGL)
-    mode3d = boolean(default = False)
     # Write output to stdout (console), instead of a file. May be used to interface directly with Linux CNC, for example.
     write_to_stdout = boolean(default = False)
     # When enabled, the shapes that are disabled are still shown on the graphic view.
@@ -317,7 +315,6 @@ class MyConfig(object):
 
         # The following settings won't be modified after a change in the configuration window.
         # If a setting need to be updated when the configuration changes, move it to the update_config() function
-        self.mode3d = self.vars.General['mode3d']
 
         self.machine_type = self.vars.General['machine_type']
         self.fitting_tolerance = self.vars.Import_Parameters['fitting_tolerance']
@@ -498,7 +495,6 @@ class MyConfig(object):
             ])),
             ('General', OrderedDict([
                 ('__section_title__', self.tr("General settings")),
-                ('mode3d', CfgCheckBox(self.tr('3D mode (requires OpenGL - restart needed)'))),
                 ('show_disabled_paths', CfgCheckBox(self.tr('Display disabled paths (default)'))),
                 ('live_update_export_route', CfgCheckBox(self.tr('Live update export route (default)'))),
                 ('__subtitle2__', CfgSubtitle(self.tr("Milling"))),

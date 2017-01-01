@@ -121,10 +121,8 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.canvas = self.ui.canvas
-        if g.config.mode3d:
-            self.canvas_scene = self.canvas
-        else:
-            self.canvas_scene = None
+
+        self.canvas_scene = None
 
         self.TreeHandler = TreeHandler(self.ui)
         self.configuration_changed.connect(self.TreeHandler.updateConfiguration)
@@ -189,10 +187,6 @@ class MainWindow(QMainWindow):
         self.ui.actionLiveUpdateExportRoute.toggled.connect(self.liveUpdateExportRoute)
         self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
         self.ui.actionAutoscale.triggered.connect(self.canvas.autoscale)
-        if g.config.mode3d:
-            self.ui.actionTopView.triggered.connect(self.canvas.topView)
-            self.ui.actionIsometricView.triggered.connect(self.canvas.isometricView)
-
         # Options
         self.ui.actionConfiguration.triggered.connect(self.config_window.show)
         self.ui.actionConfigurationPostprocessor.triggered.connect(self.MyPostProcessor.config_postpro_window.show)
@@ -239,15 +233,7 @@ class MainWindow(QMainWindow):
         if event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = True
         elif event.key() == QtCore.Qt.Key_Shift:
-            if g.config.mode3d:
-                self.canvas.isPanning = True
-                self.canvas.setCursor(QtCore.Qt.OpenHandCursor)
-            else:
-                self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
-        elif event.key() == QtCore.Qt.Key_Alt:
-            if g.config.mode3d:
-                self.canvas.isRotating = True
-                self.canvas.setCursor(QtCore.Qt.PointingHandCursor)
+            self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
 
     def keyReleaseEvent(self, event):
         """
@@ -258,22 +244,7 @@ class MainWindow(QMainWindow):
         if event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = False
         elif event.key() == QtCore.Qt.Key_Shift:
-            if g.config.mode3d:
-                self.canvas.isPanning = False
-                self.canvas.unsetCursor()
-            else:
-                self.canvas.setDragMode(QGraphicsView.NoDrag)
-        elif event.key() == QtCore.Qt.Key_Alt:
-            if g.config.mode3d:
-                self.canvas.isRotating = False
-                if -5 < self.canvas.rotX < 5 and\
-                   -5 < self.canvas.rotY < 5 and\
-                   -5 < self.canvas.rotZ < 5:
-                    self.canvas.rotX = 0
-                    self.canvas.rotY = 0
-                    self.canvas.rotZ = 0
-                    self.canvas.update()
-                self.canvas.unsetCursor()
+            self.canvas.setDragMode(QGraphicsView.NoDrag)
 
     def enableToolbarButtons(self, status=True):
         # File
@@ -290,9 +261,6 @@ class MainWindow(QMainWindow):
         self.ui.actionShowDisabledPaths.setEnabled(status)
         self.ui.actionLiveUpdateExportRoute.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
-        if g.config.mode3d:
-            self.ui.actionTopView.setEnabled(status)
-            self.ui.actionIsometricView.setEnabled(status)
 
         # Options
         self.ui.actionTolerances.setEnabled(status)
@@ -835,18 +803,16 @@ class MainWindow(QMainWindow):
         self.TreeHandler.buildLayerTree(self.layerContents)
 
         # Paint the canvas
-        if not g.config.mode3d:
-            self.canvas_scene = MyGraphicsScene()
-            self.canvas.setScene(self.canvas_scene)
+        self.canvas_scene = MyGraphicsScene()
+        self.canvas.setScene(self.canvas_scene)
 
         self.canvas_scene.plotAll(self.shapes)
         self.setShowPathDirections()
         self.setShowDisabledPaths()
         self.liveUpdateExportRoute()
 
-        if not g.config.mode3d:
-            self.canvas.show()
-            self.canvas.setFocus()
+        self.canvas.show()
+        self.canvas.setFocus()
         self.canvas.autoscale()
 
         # After all is plotted enable the Menu entities
@@ -955,11 +921,10 @@ class MainWindow(QMainWindow):
                         self.addtoLayerContents(tmp_shape, ent_geo.Layer_Nr)
                     parent.append(tmp_shape)
 
-                    if not g.config.mode3d:
-                        # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
-                        # so that selections of the shapes are reflected on the treeView
-                        tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
-                        tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
+                    # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
+                    # so that selections of the shapes are reflected on the treeView
+                    tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
+                    tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
 
     def append_geo_to_shape(self, shape, geo):
         if -1e-5 <= geo.length < 1e-5:  # TODO adjust import for this
@@ -1106,15 +1071,9 @@ if __name__ == "__main__":
         from dxf2gcode_ui5 import Ui_MainWindow
     else:
         from dxf2gcode_ui4 import Ui_MainWindow
-    if g.config.mode3d:
-        from core.shape import Shape
-        # multi-sampling has been introduced in PyQt5
-        fmt = QSurfaceFormat()
-        fmt.setSamples(4)
-        QSurfaceFormat.setDefaultFormat(fmt)
-    else:
-        from gui.canvas2d import MyGraphicsScene
-        from gui.canvas2d import ShapeGUI as Shape
+
+    from gui.canvas2d import MyGraphicsScene
+    from gui.canvas2d import ShapeGUI as Shape
     window = MainWindow(app)
     g.window = window
     Log.add_window_logger(window.ui.messageBox)
