@@ -809,8 +809,8 @@ class MainWindow(QMainWindow):
 
                     # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
                     # so that selections of the shapes are reflected on the treeView
-                    tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
-                    tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
+                    # tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
+                    # tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
 
     def append_geo_to_shape(self, shape, geo):
         if -1e-5 <= geo.length < 1e-5:  # TODO adjust import for this
@@ -929,7 +929,7 @@ if __name__ == "__main__":
         from dxf2gcode_ui4 import Ui_MainWindow
 
     from gui.canvas2d import MyGraphicsScene
-    from gui.canvas2d import ShapeGUI as Shape
+    from gui.canvas2d import ShapeNoGUI as Shape
     
     window = MainWindow(app)
     g.window = window

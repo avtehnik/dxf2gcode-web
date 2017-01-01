@@ -296,7 +296,7 @@ class MyGraphicsScene(QGraphicsScene):
         """
         for shape in shapes:
             self.paint_shape(shape)
-            self.addItem(shape)
+            # self.addItem(shape)
             self.shapes.append(shape)
         self.draw_wp_zero()
         self.update()
@@ -332,9 +332,9 @@ class MyGraphicsScene(QGraphicsScene):
         shape.stmove = self.createstmove(shape)
         shape.starrow = self.createstarrow(shape)
         shape.enarrow = self.createenarrow(shape)
-        shape.stmove.setParentItem(shape)
-        shape.starrow.setParentItem(shape)
-        shape.enarrow.setParentItem(shape)
+        # shape.stmove.setParentItem(shape)
+        # shape.starrow.setParentItem(shape)
+        # shape.enarrow.setParentItem(shape)
 
     def draw_wp_zero(self):
         """
@@ -612,6 +612,54 @@ class ShapeGUI(QGraphicsItem, Shape):
 
         if self.enableDisableCallback and not blockSignals:
             self.enableDisableCallback(self, not flag)
+
+
+class ShapeNoGUI(Shape):
+    def __init__(self, nr, closed, parentEntity):
+
+        Shape.__init__(self, nr, closed, parentEntity)
+        self.starrow = None
+        self.enarrow = None
+
+    def __str__(self):
+        return super(ShapeNoGUI, self).__str__()
+
+    def tr(self, string_to_translate):
+        return text_type(string_to_translate)
+
+    def contains_point(self, point):
+
+        min_distance = float(0x7fffffff)
+        ref_point = Point(point.x(), point.y())
+        t = 0.0
+        while t < 1.0:
+            per_point = self.path.pointAtPercent(t)
+            spline_point = Point(per_point.x(), per_point.y())
+            distance = ref_point.distance(spline_point)
+            if distance < min_distance:
+                min_distance = distance
+            t += 0.01
+        return min_distance
+
+    def boundingRect(self):
+        """
+        Required method for painting. Inherited by Painterpath
+        @return: Gives the Bounding Box
+        """
+        return self.path.boundingRect()
+
+    def shape(self):
+        """
+        Reimplemented function to select outline only.
+        @return: Returns the Outline only
+        """
+        painterStrock = QPainterPathStroker()
+        painterStrock.setCurveThreshold(0.01)
+        painterStrock.setWidth(0)
+
+        stroke = painterStrock.createStroke(self.path)
+        return stroke
+
 
 
 class StMoveGUI(QGraphicsLineItem, StMove):
