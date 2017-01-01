@@ -272,7 +272,7 @@ class MainWindow(QMainWindow):
         """
         Deletes the optimisation paths from the scene.
         """
-        self.setCursor(QtCore.Qt.WaitCursor)
+
         self.app.processEvents()
 
         self.canvas_scene.delete_opt_paths()
@@ -288,7 +288,7 @@ class MainWindow(QMainWindow):
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
-        self.setCursor(QtCore.Qt.WaitCursor)
+
         self.app.processEvents()
 
         logger.debug(self.tr('Export the enabled shapes'))
@@ -381,7 +381,7 @@ class MainWindow(QMainWindow):
         Method is called to optimize the order of the shapes. This is performed
         by solving the TSP Problem.
         """
-        self.setCursor(QtCore.Qt.WaitCursor)
+
         self.app.processEvents()
 
         logger.debug(self.tr('Optimize order of enabled shapes per layer'))
@@ -725,40 +725,12 @@ class MainWindow(QMainWindow):
             if not self.filename:
                 return False  # cancelled
 
-        self.setCursor(QtCore.Qt.WaitCursor)
+        
         self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
         self.canvas.resetAll()
         self.app.processEvents()
 
         (name, ext) = os.path.splitext(self.filename)
-
-        if ext.lower() == c.PROJECT_EXTENSION:
-            self.loadProject(self.filename)
-            return True  # kill this load operation - we opened a new one
-
-        if ext.lower() == ".ps" or ext.lower() == ".pdf":
-            logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
-
-            # Create temporary file which will be read by the program
-            self.filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
-
-            pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd']
-            pstoedit_opt = g.config.vars.Filters['pstoedit_opt']
-            ps_filename = os.path.normcase(self.filename)
-            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % self.filename)]
-            logger.debug(cmd)
-            try:
-                subprocess.call(cmd)
-            except OSError as e:
-                logger.error(e.strerror)
-                self.unsetCursor()
-                QMessageBox.critical(self,
-                                     "ERROR",
-                                     self.tr("Please make sure you have installed pstoedit, and configured it in the config file."))
-                return True
-            # If the return code was non-zero it raises a
-            # subprocess.CalledProcessError.
-            subprocess.check_output()
 
         logger.info(self.tr('Loading file: %s') % self.filename)
 
@@ -773,6 +745,7 @@ class MainWindow(QMainWindow):
                         % (i, len(self.valuesDXF.blocks.Entities[i].geo), len(self.valuesDXF.blocks.Entities[i].cont), layers))
         layers = self.valuesDXF.entities.get_used_layers()
         insert_nr = self.valuesDXF.entities.get_insert_nr()
+
         logger.info(self.tr('Loaded %i entity geometries; reduced to %i contours; used layers: %s; number of inserts %i')
                     % (len(self.valuesDXF.entities.geo), len(self.valuesDXF.entities.cont), layers, insert_nr))
 
@@ -1074,8 +1047,10 @@ if __name__ == "__main__":
 
     from gui.canvas2d import MyGraphicsScene
     from gui.canvas2d import ShapeGUI as Shape
+    
     window = MainWindow(app)
     g.window = window
+    
     Log.add_window_logger(window.ui.messageBox)
 
     # command line options
@@ -1089,15 +1064,11 @@ if __name__ == "__main__":
                         help="export data to FILENAME")
     parser.add_argument("-q", "--quiet", action="store_true",
                         dest="quiet", help="no GUI")
-#    parser.add_option("-v", "--verbose",
-#                      action = "store_true", dest = "verbose")
     options = parser.parse_args()
 
     # (options, args) = parser.parse_args()
     logger.debug("Started with following options:\n%s" % parser)
 
-    if not options.quiet:
-        window.show()
 
     if options.filename is not None:
         window.filename = str_decode(options.filename)

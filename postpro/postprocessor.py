@@ -41,12 +41,6 @@ from gui.configwindow import *
 
 from globals.six import text_type, PY2
 import globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QMessageBox
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QMessageBox
-    from PyQt4 import QtCore
 
 if PY2:
     str_encode = lambda exstr: exstr.encode('utf-8')

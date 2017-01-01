@@ -34,10 +34,6 @@ import globals.globals as g
 
 from globals.six import text_type
 import globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5 import QtCore
-else:
-    from PyQt4 import QtCore
 
 import logging
 logger = logging.getLogger("PostPro.TSP")
