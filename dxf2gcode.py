@@ -689,7 +689,6 @@ class MainWindow(QMainWindow):
         self.TreeHandler.buildLayerTree(self.layerContents)
 
         # Paint the canvas
-        self.canvas_scene = MyGraphicsScene()
         self.canvas.setScene(self.canvas_scene)
 
         self.canvas_scene.plotAll(self.shapes)
@@ -928,7 +927,6 @@ if __name__ == "__main__":
     else:
         from dxf2gcode_ui4 import Ui_MainWindow
 
-    from gui.canvas2d import MyGraphicsScene
     from gui.canvas2d import ShapeNoGUI as Shape
     
     window = MainWindow(app)
