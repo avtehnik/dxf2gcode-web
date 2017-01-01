@@ -326,7 +326,7 @@ class MainWindow(QMainWindow):
         if len(self.canvas_scene.routearrows) > 0:
             self.ui.actionDeleteG0Paths.setEnabled(True)
             self.canvas_scene.addexprouteen()
-        self.canvas_scene.update()
+        # self.canvas_scene.update()
 
     def optimizeTSP(self):
         """
@@ -495,18 +495,18 @@ class MainWindow(QMainWindow):
         This function is called by the menu "Show all path directions" of the
         main and forwards the call to Canvas.setShow_path_direction()
         """
-        flag = self.ui.actionShowPathDirections.isChecked()
-        self.canvas.setShowPathDirections(flag)
-        self.canvas_scene.update()
+        # flag = self.ui.actionShowPathDirections.isChecked()
+        # self.canvas.setShowPathDirections(flag)
+        # self.canvas_scene.update()
 
     def setShowDisabledPaths(self):
         """
         This function is called by the menu "Show disabled paths" of the
         main and forwards the call to Canvas.setShow_disabled_paths()
         """
-        flag = self.ui.actionShowDisabledPaths.isChecked()
-        self.canvas_scene.setShowDisabledPaths(flag)
-        self.canvas_scene.update()
+        # flag = self.ui.actionShowDisabledPaths.isChecked()
+        # self.canvas_scene.setShowDisabledPaths(flag)
+        # self.canvas_scene.update()
 
     def liveUpdateExportRoute(self):
         """
@@ -689,19 +689,20 @@ class MainWindow(QMainWindow):
         self.TreeHandler.buildLayerTree(self.layerContents)
 
         # Paint the canvas
-        self.canvas.setScene(self.canvas_scene)
+        self.canvas_scene = MyNoGraphicsScene()
+        # self.canvas.setScene(self.canvas_scene)
 
         self.canvas_scene.plotAll(self.shapes)
         self.setShowPathDirections()
         self.setShowDisabledPaths()
         self.liveUpdateExportRoute()
 
-        self.canvas.show()
-        self.canvas.setFocus()
-        self.canvas.autoscale()
+        # self.canvas.show()
+        # self.canvas.setFocus()
+        # self.canvas.autoscale()
 
         # After all is plotted enable the Menu entities
-        self.enableToolbarButtons()
+        # self.enableToolbarButtons()
 
         self.automaticCutterCompensation()
 
@@ -927,7 +928,8 @@ if __name__ == "__main__":
     else:
         from dxf2gcode_ui4 import Ui_MainWindow
 
-    from gui.canvas2d import ShapeNoGUI as Shape
+    from gui.canvas2dnogui import MyNoGraphicsScene
+    from gui.canvas2dnogui import ShapeNoGUI as Shape
     
     window = MainWindow(app)
     g.window = window
