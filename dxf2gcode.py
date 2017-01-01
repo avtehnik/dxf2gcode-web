@@ -171,7 +171,6 @@ class MainWindow(QMainWindow):
         # File
         self.ui.actionOpen.triggered.connect(self.open)
         self.ui.actionReload.triggered.connect(self.reload)
-        self.ui.actionSaveProjectAs.triggered.connect(self.saveProject)
         self.ui.actionClose.triggered.connect(self.close)
 
         # Export
@@ -281,15 +280,13 @@ class MainWindow(QMainWindow):
 
         self.unsetCursor()
 
-    def exportShapes(self, status=False, saveas=None):
+    def exportShapes(self, status=False, save_filename=None):
         """
         This function is called by the menu "Export/Export Shapes". It may open
         a Save Dialog if used without LinuxCNC integration. Otherwise it's
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
-
-        self.app.processEvents()
 
         logger.debug(self.tr('Export the enabled shapes'))
 
@@ -301,58 +298,13 @@ class MainWindow(QMainWindow):
         for i, layer in enumerate(self.layerContents.non_break_layer_iter()):
             logger.debug("LayerContents[%i] = %s" % (i, layer))
 
-        if not g.config.vars.General['write_to_stdout']:
-
-            # Get the name of the File to export
-            if not saveas:
-                MyFormats = ""
-                for i in range(len(self.MyPostProcessor.output_format)):
-                    name = "%s " % (self.MyPostProcessor.output_text[i])
-                    format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
-                    MyFormats = MyFormats + name + format_
-                filename = self.showSaveDialog(self.tr('Export to file'), MyFormats)
-                save_filename = qstr_encode(filename[0])
-            else:
-                filename = [None, None]
-                save_filename = saveas
-
-            # If Cancel was pressed
-            if not save_filename:
-                self.unsetCursor()
-                return
-
-            (beg, ende) = os.path.split(save_filename)
-            (fileBaseName, fileExtension) = os.path.splitext(ende)
-
-            pp_file_nr = 0
-            for i in range(len(self.MyPostProcessor.output_format)):
-                name = "%s " % (self.MyPostProcessor.output_text[i])
-                format_ = "(*%s)" % (self.MyPostProcessor.output_format[i])
-                MyFormats = name + format_
-                if filename[1] == MyFormats:
-                    pp_file_nr = i
-            if fileExtension != self.MyPostProcessor.output_format[pp_file_nr]:
-                if not QtCore.QFile.exists(save_filename):
-                    save_filename += self.MyPostProcessor.output_format[pp_file_nr]
-
-            self.MyPostProcessor.getPostProVars(pp_file_nr)
-        else:
-            save_filename = ""
-            self.MyPostProcessor.getPostProVars(0)
-
         """
         Export will be performed according to LayerContents and their order
         is given in this variable too.
         """
 
-        self.MyPostProcessor.exportShapes(self.filename,
-                                          save_filename,
-                                          self.layerContents)
-
-        self.unsetCursor()
-
-        if g.config.vars.General['write_to_stdout']:
-            self.close()
+        self.MyPostProcessor.exportShapes(self.filename,save_filename,self.layerContents)
+        self.close()
 
     def optimizeAndExportShapes(self):
         """
@@ -686,8 +638,6 @@ class MainWindow(QMainWindow):
         load the selected file.
         """
 
-        self.OpenFileDialog(self.tr("Open file"))
-
         # If there is something to load then call the load function callback
         if self.filename:
             self.cont_dx = 0.0
@@ -697,35 +647,13 @@ class MainWindow(QMainWindow):
 
             self.load()
 
-    def OpenFileDialog(self, title):
-        self.filename, _ = getOpenFileName(self,
-                                           title,
-                                           g.config.vars.Paths['import_dir'],
-                                           self.tr("All supported files (*.dxf *.ps *.pdf *%s);;"
-                                                   "DXF files (*.dxf);;"
-                                                   "PS files (*.ps);;"
-                                                   "PDF files (*.pdf);;"
-                                                   "Project files (*%s);;"
-                                                   "All types (*.*)") % (c.PROJECT_EXTENSION, c.PROJECT_EXTENSION))
-
-        # If there is something to load then call the load function callback
-        if self.filename:
-            self.filename = qstr_encode(self.filename)
-            logger.info(self.tr("File: %s selected") % self.filename)
-
     def load(self, plot=True):
         """
         Loads the file given by self.filename.  Also calls the command to
         make the plot.
         @param plot: if it should plot
         """
-        if not QtCore.QFile.exists(self.filename):
-            logger.info(self.tr("Cannot locate file: %s") % self.filename)
-            self.OpenFileDialog(self.tr("Manually open file: %s") % self.filename)
-            if not self.filename:
-                return False  # cancelled
 
-        
         self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
         self.canvas.resetAll()
         self.app.processEvents()
@@ -749,21 +677,6 @@ class MainWindow(QMainWindow):
         logger.info(self.tr('Loaded %i entity geometries; reduced to %i contours; used layers: %s; number of inserts %i')
                     % (len(self.valuesDXF.entities.geo), len(self.valuesDXF.entities.cont), layers, insert_nr))
 
-        if g.config.metric == 0:
-            logger.info(self.tr("Drawing units: inches"))
-            distance = self.tr("[in]")
-            speed = self.tr("[IPM]")
-        else:
-            logger.info(self.tr("Drawing units: millimeters"))
-            distance = self.tr("[mm]")
-            speed = self.tr("[mm/min]")
-        self.ui.unitLabel_3.setText(distance)
-        self.ui.unitLabel_4.setText(distance)
-        self.ui.unitLabel_5.setText(distance)
-        self.ui.unitLabel_6.setText(distance)
-        self.ui.unitLabel_7.setText(distance)
-        self.ui.unitLabel_8.setText(speed)
-        self.ui.unitLabel_9.setText(speed)
 
         self.makeShapes()
         if plot:
@@ -964,36 +877,6 @@ class MainWindow(QMainWindow):
         str_ = file_.read()
         file_.close()
         self.d2g.load(str_)
-
-    def saveProject(self):
-        """
-        Save all variables to file
-        """
-        prj_filename = self.showSaveDialog(self.tr('Save project to file'), "Project files (*%s)" % c.PROJECT_EXTENSION)
-        save_prj_filename = qstr_encode(prj_filename[0])
-
-        # If Cancel was pressed
-        if not save_prj_filename:
-            return
-
-        (beg, ende) = os.path.split(save_prj_filename)
-        (fileBaseName, fileExtension) = os.path.splitext(ende)
-
-        if fileExtension != c.PROJECT_EXTENSION:
-            if not QtCore.QFile.exists(save_prj_filename):
-                save_prj_filename += c.PROJECT_EXTENSION
-
-        pyCode = self.d2g.export()
-        try:
-            # File open and write
-            f = open(save_prj_filename, "w")
-            f.write(str_encode(pyCode))
-            f.close()
-            logger.info(self.tr("Save project to FILE was successful"))
-        except IOError:
-            QMessageBox.warning(g.window,
-                                self.tr("Warning during Save Project As"),
-                                self.tr("Cannot Save the File"))
 
     def closeEvent(self, e):
         logger.debug(self.tr("Closing"))
