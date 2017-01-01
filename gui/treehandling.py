@@ -1557,7 +1557,7 @@ class TreeHandler(QWidget):
         if self.auto_update_export_order:
             self.prepareExportOrderUpdate()
 
-class TreeHandlerNoQui(QWidget):
+class TreeHandlerNoQui():
     """
     Class to handle both QTreeView :  entitiesTreeView (for blocks, and the tree of blocks) and layersShapesTreeView (for layers and shapes)
     """
@@ -1567,7 +1567,6 @@ class TreeHandlerNoQui(QWidget):
         Standard method to initialize the class
         @param ui: the GUI
         """
-        QWidget.__init__(self)
         self.ui = ui
 
         # Used to store previous values in order to enable/disable text
