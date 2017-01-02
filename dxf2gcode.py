@@ -51,7 +51,6 @@ from globals.logger import LoggerClass
 from gui.configwindow import ConfigWindow
 from gui.treehandling import TreeHandlerNoQui
 from gui.popupdialog import PopUpDialog
-from gui.aboutdialog import AboutDialog
 
 from dxfimport.importer import ReadDXF
 
@@ -240,13 +239,6 @@ class MainWindow(QMainWindow):
         self.MyPostProcessor.exportShapes(self.filename,save_filename,self.layerContents)
         self.close()
 
-    def optimizeAndExportShapes(self):
-        """
-        Optimize the tool path, then export the shapes
-        """
-        self.optimizeTSP()
-        self.exportShapes()
-
     def updateExportRoute(self):
         """
         Update the drawing of the export route
@@ -260,244 +252,12 @@ class MainWindow(QMainWindow):
         if len(self.canvas_scene.routearrows) > 0:
             self.ui.actionDeleteG0Paths.setEnabled(True)
             self.canvas_scene.addexprouteen()
-        # self.canvas_scene.update()
 
-    def optimizeTSP(self):
-        """
-        Method is called to optimize the order of the shapes. This is performed
-        by solving the TSP Problem.
-        """
-
-        self.app.processEvents()
-
-        logger.debug(self.tr('Optimize order of enabled shapes per layer'))
-        self.canvas_scene.delete_opt_paths()
-
-        # Get the export order from the QTreeView
-        logger.debug(self.tr('Updating order according to TreeView'))
-        self.TreeHandler.updateExportOrder()
-        self.canvas_scene.addexproutest()
-
-        for LayerContent in self.layerContents.non_break_layer_iter():
-            # Initial values for the Lists to export.
-            shapes_to_write = []
-            shapes_fixed_order = []
-            shapes_st_en_points = []
-
-            # Check all shapes of Layer which shall be exported and create List for it.
-            logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")
-                         % (len(LayerContent.shapes), len(LayerContent.exp_order)))
-            logger.debug(self.tr("Export Order for start: %s") % LayerContent.exp_order)
-
-            for shape_nr in range(len(LayerContent.exp_order)):
-                if not self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP:
-                    shapes_fixed_order.append(shape_nr)
-
-                shapes_to_write.append(shape_nr)
-                shapes_st_en_points.append(self.shapes[LayerContent.exp_order[shape_nr]].get_start_end_points())
-
-            # Perform Export only if the Number of shapes to export is bigger than 0
-            if len(shapes_to_write) > 0:
-                # Errechnen der Iterationen
-                # Calculate the iterations
-                iter_ = min(g.config.vars.Route_Optimisation['max_iterations'], len(shapes_to_write)*50)
-
-                # Adding the Start and End Points to the List.
-                x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
-                y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
-                start = Point(x_st, y_st)
-                ende = Point(x_st, y_st)
-                shapes_st_en_points.append([start, ende])
-
-                TSPs = TspOptimization(shapes_st_en_points, shapes_fixed_order)
-                logger.info(self.tr("TSP start values initialised for Layer %s") % LayerContent.name)
-                logger.debug(self.tr("Shapes to write: %s") % shapes_to_write)
-                logger.debug(self.tr("Fixed order: %s") % shapes_fixed_order)
-
-                for it_nr in range(iter_):
-                    # Only show each 50th step.
-                    if it_nr % 50 == 0:
-                        TSPs.calc_next_iteration()
-                        new_exp_order = [LayerContent.exp_order[nr] for nr in TSPs.opt_route[1:]]
-
-                logger.debug(self.tr("TSP done with result: %s") % TSPs)
-
-                LayerContent.exp_order = new_exp_order
-
-                self.canvas_scene.addexproute(LayerContent.exp_order, LayerContent.nr)
-                logger.debug(self.tr("New Export Order after TSP: %s") % new_exp_order)
-                self.app.processEvents()
-            else:
-                LayerContent.exp_order = []
-
-        if len(self.canvas_scene.routearrows) > 0:
-            self.ui.actionDeleteG0Paths.setEnabled(True)
-            self.canvas_scene.addexprouteen()
-
-        # Update order in the treeView, according to path calculation done by the TSP
-        self.TreeHandler.updateTreeViewOrder()
-        self.canvas_scene.update()
-
-        self.unsetCursor()
 
     def isShapeContained(self, shape, outerShape):
         return shape != outerShape and not \
             isinstance(outerShape, CustomGCode) and\
             shape.BB.iscontained(outerShape.BB)
-
-    def showSaveDialog(self, title, MyFormats):
-        """
-        This function is called by the menu "Export/Export Shapes" of the main toolbar.
-        It creates the selection dialog for the exporter
-        @return: Returns the filename of the selected file.
-        """
-
-        (beg, ende) = os.path.split(self.filename)
-        (fileBaseName, fileExtension) = os.path.splitext(ende)
-
-        default_name = os.path.join(g.config.vars.Paths['output_dir'], fileBaseName)
-
-        selected_filter = self.MyPostProcessor.output_format[0]
-        filename = getSaveFileName(self,
-                                   title, default_name,
-                                   MyFormats, selected_filter)
-
-        logger.info(self.tr("File: %s selected") % filename[0])
-        logger.info("<a href='%s'>%s</a>" % (filename[0], filename[0]))
-        return filename
-
-    def about(self):
-        """
-        This function is called by the menu "Help/About" of the main toolbar and
-        creates the About Window
-        """
-
-        message = self.tr("<html>"
-                          "<h2><center>You are using</center></h2>"
-                          "<body bgcolor="
-                          "<center><img src=':images/dxf2gcode_logo.png' border='1' color='white'></center></body>"
-                          "<h2>Version:</h2>"
-                          "<body>%s: %s<br>"
-                          "Last change: %s<br>"
-                          "Changed by: %s<br></body>"
-                          "<h2>Where to get help:</h2>"
-                          "For more information and updates, "
-                          "please visit "
-                          "<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a><br>"
-                          "For any questions on how to use dxf2gcode please use the "
-                          "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br>"
-                          "To log bugs, or request features please use the "
-                          "<a href='http://sourceforge.net/projects/dxf2gcode/tickets/'>issue tracking system</a><br>"
-                          "<h2>License and copyright:</h2>"
-                          "<body>This program is written in Python and is published under the "
-                          "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"
-                          "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
-
-        AboutDialog(title=self.tr("About DXF2GCODE"), message=message)
-
-
-    def liveUpdateExportRoute(self):
-        """
-        This function is called by the menu "Live update tool path" of the
-        main and forwards the call to TreeHandler.setUpdateExportRoute()
-        """
-        flag = self.ui.actionLiveUpdateExportRoute.isChecked()
-        self.TreeHandler.setLiveUpdateExportRoute(flag)
-
-    def setTolerances(self):
-        title = self.tr('Contour tolerances')
-        units = "in" if g.config.metric == 0 else "mm"
-        label = [self.tr("Tolerance for common points [%s]:") % units,
-                 self.tr("Tolerance for curve fitting [%s]:") % units]
-        value = [g.config.point_tolerance,
-                 g.config.fitting_tolerance]
-
-        logger.debug(self.tr("set Tolerances"))
-        SetTolDialog = PopUpDialog(title, label, value)
-
-        if SetTolDialog.result is None:
-            return
-
-        g.config.point_tolerance = float(SetTolDialog.result[0])
-        g.config.fitting_tolerance = float(SetTolDialog.result[1])
-
-        self.d2g.reload()  # set tolerances requires a complete reload
-
-    def scaleAll(self):
-        title = self.tr('Scale Contour')
-        label = [self.tr("Scale Contour by factor:")]
-        value = [self.cont_scale]
-        ScaEntDialog = PopUpDialog(title, label, value)
-
-        if ScaEntDialog.result is None:
-            return
-
-        self.cont_scale = float(ScaEntDialog.result[0])
-        self.entityRoot.sca = self.cont_scale
-
-        self.d2g.small_reload()
-
-    def rotateAll(self):
-        title = self.tr('Rotate Contour')
-        # TODO should we support radians for drawing unit non metric?
-        label = [self.tr("Rotate Contour by deg:")]
-        value = [degrees(self.cont_rotate)]
-        RotEntDialog = PopUpDialog(title, label, value)
-
-        if RotEntDialog.result is None:
-            return
-
-        self.cont_rotate = radians(float(RotEntDialog.result[0]))
-        self.entityRoot.rot = self.cont_rotate
-
-        self.d2g.small_reload()
-
-    def moveWorkpieceZero(self):
-        """
-        This function is called when the Option=>Move WP Zero Menu is clicked.
-        """
-        title = self.tr('Workpiece zero offset')
-        units = "[in]" if g.config.metric == 0 else "[mm]"
-        label = [self.tr("Offset %s axis %s:") % (g.config.vars.Axis_letters['ax1_letter'], units),
-                 self.tr("Offset %s axis %s:") % (g.config.vars.Axis_letters['ax2_letter'], units)]
-        value = [self.cont_dx, self.cont_dy]
-        MoveWpzDialog = PopUpDialog(title, label, value, True)
-
-        if MoveWpzDialog.result is None:
-            return
-
-        if MoveWpzDialog.result == 'Auto':
-            minx = sys.float_info.max
-            miny = sys.float_info.max
-            for shape in self.shapes:
-                if not shape.isDisabled():
-                    minx = min(minx, shape.BB.Ps.x)
-                    miny = min(miny, shape.BB.Ps.y)
-            self.cont_dx = self.entityRoot.p0.x - minx
-            self.cont_dy = self.entityRoot.p0.y - miny
-        else:
-            self.cont_dx = float(MoveWpzDialog.result[0])
-            self.cont_dy = float(MoveWpzDialog.result[1])
-
-        self.entityRoot.p0.x = self.cont_dx
-        self.entityRoot.p0.y = self.cont_dy
-
-        self.d2g.small_reload()
-
-    def setMachineTypeToMilling(self):
-        g.config.machine_type = 'milling'
-        self.updateMachineType()
-        self.d2g.small_reload()
-
-    def setMachineTypeToDragKnife(self):
-        g.config.machine_type = 'drag_knife'
-        self.updateMachineType()
-        self.d2g.small_reload()
-
-    def setMachineTypeToLathe(self):
-        g.config.machine_type = 'lathe'
-        self.updateMachineType()
-        self.d2g.small_reload()
 
     def updateMachineType(self):
         if g.config.machine_type == 'milling':
