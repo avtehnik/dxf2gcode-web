@@ -74,7 +74,7 @@ class MyPostProcessor(object):
         self.loadCreateConfigFiles()
 
         self.config_postpro_window = ConfigWindow(MyPostProConfig.makeConfigWidgets(), title = self.tr("Postprocessor configuration"))
-        #Enable the config file selector into the configuration widget
+        # #Enable the config file selector into the configuration widget
         self.config_postpro_window.setConfigSelectorCallback(self.postproConfigSelectionChangedCallback, self.postproConfigAddFileCallback, self.postproConfigRemoveFileCallback, self.postproConfigDuplicateFileCallback)
         self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList()) #Set the list of current configuration files
         self.config_postpro_window.finished.connect(self.updatePostprocessorConfiguration)
@@ -148,7 +148,7 @@ class MyPostProcessor(object):
             logger.error("An error occured while removing the postprocessor config file {0} ; do the operation manually and restart the software.".format(file_to_remove))
             result = False
         self.loadCreateConfigFiles()
-        self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList()) #Set the list of current configuration files
+        # self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList()) #Set the list of current configuration files
 
         return result
 
@@ -172,7 +172,7 @@ class MyPostProcessor(object):
                 logger.error("An error occured while duplicating the postprocessor config file {0} ; do the operation manually and restart the software.".format(duplicate_name))
                 result = False
             self.loadCreateConfigFiles()
-            self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList(), new_name) #Set the list of current configuration files
+            # self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList(), new_name) #Set the list of current configuration files
         else:
             result = False
 
@@ -318,24 +318,16 @@ class MyPostProcessor(object):
         exstr += self.write_gcode_en()
 
         exstr = self.make_line_numbers(exstr)
-
-        # If the String shall be given to STDOUT
-        if g.config.vars.General['write_to_stdout']:
-            print(exstr)
-            logger.info(self.tr("Export to STDOUT was successful"))
-            # self.close
-        else:
-            # Export Data to file
-            try:
-                # File open and write
-                f = open(save_filename, "w")
-                f.write(str_encode(exstr))
-                f.close()
-                logger.info(self.tr("Export to FILE was successful"))
-            except IOError:
-                QMessageBox.warning(g.window,
-                                    self.tr("Warning during Export"),
-                                    self.tr("Cannot Save the File"))
+        # print(exstr)
+        try:
+            # File open and write
+            f = open(save_filename, "w")
+            f.write(str_encode(exstr))
+            f.close()
+            logger.info("Export to FILE was successful")
+        except IOError:
+            logger.info("Warning during Export")
+            logger.info("Cannot Save the File")
 
     def initialize_export_vars(self):
         """
