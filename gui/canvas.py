@@ -45,18 +45,18 @@ This Canvas function can be called as any class.
 Since it will pretend to be, depending on the settings,
 to be the canvas3d or canvas2d class
 """
-def Canvas(parent=None):
-    from gui.canvas2d import MyGraphicsView
-    return MyGraphicsView(parent)
+# def Canvas(parent=None):
+#     from gui.canvas2d import MyGraphicsView
+#     return MyGraphicsView(parent)
 
-def CanvasObject():
-    return QGraphicsView
+# def CanvasObject():
+#     return QGraphicsView
 
-class CanvasBase(CanvasObject()):
-    def __init__(self, parent=None):
-        super(CanvasBase, self).__init__(parent)
-
-        self.isMultiSelect = False
+# class CanvasBase(CanvasObject()):
+#     def __init__(self, parent=None):
+#         super(CanvasBase, self).__init__(parent)
+#
+#         self.isMultiSelect = False
 
 
 class MyDropDownMenu(QMenu):

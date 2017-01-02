@@ -118,8 +118,6 @@ class MainWindow(QMainWindow):
 
         self.ui.setupUi(self)
 
-        self.canvas = self.ui.canvas
-
         self.canvas_scene = None
 
         self.TreeHandler = TreeHandlerNoQui(self.ui)
@@ -156,49 +154,6 @@ class MainWindow(QMainWindow):
         @return: the translated unicode string if it was possible to translate
         """
         return text_type(string_to_translate)
-
-    def connectToolbarToConfig(self, project=False, block_signals=True):
-        # View
-        if not project:
-            self.ui.actionShowDisabledPaths.blockSignals(block_signals) #Don't emit any signal when changing state of the menu entries
-            self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
-            self.ui.actionShowDisabledPaths.blockSignals(False)
-            self.ui.actionLiveUpdateExportRoute.blockSignals(block_signals)
-            self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
-            self.ui.actionLiveUpdateExportRoute.blockSignals(False)
-
-        # Options
-        self.ui.actionSplitLineSegments.blockSignals(block_signals)
-        self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
-        self.ui.actionSplitLineSegments.blockSignals(False)
-        self.ui.actionAutomaticCutterCompensation.blockSignals(block_signals)
-        self.ui.actionAutomaticCutterCompensation.setChecked(g.config.vars.General['automatic_cutter_compensation'])
-        self.ui.actionAutomaticCutterCompensation.blockSignals(False)
-        self.updateMachineType()
-
-    def keyPressEvent(self, event):
-        """
-        Rewritten KeyPressEvent to get other behavior while Shift is pressed.
-        @purpose: Changes to ScrollHandDrag while Control pressed
-        @param event:    Event Parameters passed to function
-        """
-        if event.isAutoRepeat():
-            return
-        if event.key() == QtCore.Qt.Key_Control:
-            self.canvas.isMultiSelect = True
-        elif event.key() == QtCore.Qt.Key_Shift:
-            self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
-
-    def keyReleaseEvent(self, event):
-        """
-        Rewritten KeyReleaseEvent to get other behavior while Shift is pressed.
-        @purpose: Changes to RubberBandDrag while Control released
-        @param event:    Event Parameters passed to function
-        """
-        if event.key() == QtCore.Qt.Key_Control:
-            self.canvas.isMultiSelect = False
-        elif event.key() == QtCore.Qt.Key_Shift:
-            self.canvas.setDragMode(QGraphicsView.NoDrag)
 
     def deleteG0Paths(self):
         """
@@ -243,14 +198,12 @@ class MainWindow(QMainWindow):
         """
         Update the drawing of the export route
         """
-        self.canvas_scene.delete_opt_paths()
 
         self.canvas_scene.addexproutest()
         for LayerContent in self.layerContents.non_break_layer_iter():
             if len(LayerContent.exp_order) > 0:
                 self.canvas_scene.addexproute(LayerContent.exp_order, LayerContent.nr)
         if len(self.canvas_scene.routearrows) > 0:
-            self.ui.actionDeleteG0Paths.setEnabled(True)
             self.canvas_scene.addexprouteen()
 
 
@@ -258,26 +211,6 @@ class MainWindow(QMainWindow):
         return shape != outerShape and not \
             isinstance(outerShape, CustomGCode) and\
             shape.BB.iscontained(outerShape.BB)
-
-    def updateMachineType(self):
-        if g.config.machine_type == 'milling':
-            self.ui.actionAutomaticCutterCompensation.setEnabled(True)
-            self.ui.actionMilling.setChecked(True)
-            self.ui.actionDragKnife.setChecked(False)
-            self.ui.actionLathe.setChecked(False)
-            self.ui.label_9.setText(self.tr("Z Infeed depth"))
-        elif g.config.machine_type == 'lathe':
-            self.ui.actionAutomaticCutterCompensation.setEnabled(False)
-            self.ui.actionMilling.setChecked(False)
-            self.ui.actionDragKnife.setChecked(False)
-            self.ui.actionLathe.setChecked(True)
-            self.ui.label_9.setText(self.tr("No Z-Axis for lathe"))
-        elif g.config.machine_type == "drag_knife":
-            self.ui.actionAutomaticCutterCompensation.setEnabled(False)
-            self.ui.actionMilling.setChecked(False)
-            self.ui.actionDragKnife.setChecked(True)
-            self.ui.actionLathe.setChecked(False)
-            self.ui.label_9.setText(self.tr("Z Drag depth"))
 
     def open(self):
         """
@@ -301,10 +234,6 @@ class MainWindow(QMainWindow):
         make the plot.
         @param plot: if it should plot
         """
-
-        self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
-        self.canvas.resetAll()
-        self.app.processEvents()
 
         (name, ext) = os.path.splitext(self.filename)
 
@@ -339,15 +268,6 @@ class MainWindow(QMainWindow):
         # Paint the canvas
         self.canvas_scene = MyNoGraphicsScene()
         self.canvas_scene.plotAll(self.shapes)
-
-    def reload(self):
-        """
-        This function is called by the menu "File/Reload File" of the main toolbar.
-        It reloads the previously loaded file (if any)
-        """
-        if self.filename:
-            logger.info(self.tr("Reloading file: %s") % self.filename)
-            self.load()
 
     def makeShapes(self):
         self.entityRoot = EntityContent(nr=0, name='Entities', parent=None,
@@ -406,14 +326,11 @@ class MainWindow(QMainWindow):
                                                  rot=rot)
 
                 parent.append(newEntityContent)
-
                 self.makeEntityShapes(newEntityContent, ent_geo.Layer_Nr)
 
             else:
                 # Loop for the number of geometries
-                tmp_shape = Shape(len(self.shapes),
-                                  (True if cont.closed else False),
-                                  parent)
+                tmp_shape = Shape(len(self.shapes),(True if cont.closed else False), parent)
 
                 for ent_geo_nr in range(len(cont.order)):
                     ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
@@ -439,35 +356,13 @@ class MainWindow(QMainWindow):
                         self.addtoLayerContents(tmp_shape, ent_geo.Layer_Nr)
                     parent.append(tmp_shape)
 
-                    # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
-                    # so that selections of the shapes are reflected on the treeView
-                    # tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
-                    # tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
-
     def append_geo_to_shape(self, shape, geo):
         if -1e-5 <= geo.length < 1e-5:  # TODO adjust import for this
             return
-
-        if self.ui.actionSplitLineSegments.isChecked():
-            if isinstance(geo, LineGeo):
-                diff = (geo.Pe - geo.Ps) / 2.0
-                geo_b = deepcopy(geo)
-                geo_a = deepcopy(geo)
-                geo_b.Pe -= diff
-                geo_a.Ps += diff
-                shape.append(geo_b)
-                shape.append(geo_a)
-            else:
-                shape.append(geo)
-        else:
-            shape.append(geo)
-
+        shape.append(geo)
         if isinstance(geo, HoleGeo):
             shape.type = 'Hole'
             shape.closed = True  # TODO adjust import for holes?
-            if g.config.machine_type == 'drag_knife':
-                shape.disabled = True
-                shape.allowedToChange = False
 
     def addtoLayerContents(self, shape, lay_nr):
         # Check if the layer already exists and add shape if it is.

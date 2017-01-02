@@ -438,15 +438,15 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addLayout(self.gridLayout)
         self.verticalLayout_5.addWidget(self.millSettingsFrame)
         self.mytabWidget.addTab(self.tab_2, _fromUtf8(""))
-        self.canvas = Canvas(self.splitter)
+        # self.canvas = Canvas(self.splitter)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(7)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.canvas.sizePolicy().hasHeightForWidth())
-        self.canvas.setSizePolicy(sizePolicy)
-        self.canvas.setMinimumSize(QtCore.QSize(200, 200))
-        self.canvas.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-        self.canvas.setObjectName(_fromUtf8("canvas"))
+        # sizePolicy.setHeightForWidth(self.canvas.sizePolicy().hasHeightForWidth())
+        # self.canvas.setSizePolicy(sizePolicy)
+        # self.canvas.setMinimumSize(QtCore.QSize(200, 200))
+        # self.canvas.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        # self.canvas.setObjectName(_fromUtf8("canvas"))
         self.verticalLayout.addWidget(self.splitter)
         self.messageBox = MessageBox(self.centralwidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
@@ -609,8 +609,8 @@ class Ui_MainWindow(object):
         MainWindow.setTabOrder(self.mytabWidget, self.entitiesTreeView)
         MainWindow.setTabOrder(self.entitiesTreeView, self.blocksCollapsePushButton)
         MainWindow.setTabOrder(self.blocksCollapsePushButton, self.blocksExpandPushButton)
-        MainWindow.setTabOrder(self.blocksExpandPushButton, self.canvas)
-        MainWindow.setTabOrder(self.canvas, self.messageBox)
+        # MainWindow.setTabOrder(self.blocksExpandPushButton, self.canvas)
+        # MainWindow.setTabOrder(self.canvas, self.messageBox)
         MainWindow.setTabOrder(self.messageBox, self.layersShapesTreeView)
         MainWindow.setTabOrder(self.layersShapesTreeView, self.layersCollapsePushButton)
         MainWindow.setTabOrder(self.layersCollapsePushButton, self.layersExpandPushButton)
@@ -700,7 +700,7 @@ class Ui_MainWindow(object):
         self.actionSaveProjectAs.setText(_translate("MainWindow", "Save Project As...", None))
         self.actionSaveProjectAs.setShortcut(_translate("MainWindow", "Ctrl+S", None))
 
-from gui.canvas import Canvas
+# from gui.canvas import Canvas
 from gui.treeview import TreeView
 from gui.messagebox import MessageBox
 import dxf2gcode_images4_rc

@@ -41,7 +41,6 @@ from core.stmove import StMove
 from gui.wpzero import WpZero
 from gui.arrow import Arrow
 from gui.routetext import RouteText
-from gui.canvas import CanvasBase, MyDropDownMenu
 
 import globals.globals as g
 
@@ -70,22 +69,6 @@ class MyNoGraphicsScene():
 
         self.showDisabledPaths = False
 
-        self.BB = BoundingBox()
-
-    def setScene(self, instance):
-
-        return
-    def update(self):
-
-        return
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return text_type(string_to_translate)
-
     def plotAll(self, shapes):
         """
         Instance is called by the Main Window after the defined file is loaded.
@@ -93,62 +76,8 @@ class MyNoGraphicsScene():
         used to scale or offset the base geometry (by Menu in GUI).
         """
         for shape in shapes:
-            self.paint_shape(shape)
+            shape.stmove = StMoveNoGUI(shape)
             self.shapes.append(shape)
-        self.draw_wp_zero()
-        self.update()
-
-    def repaint_shape(self, shape):
-        # setParentItem(None) might let it crash, hence we rely on the garbage collector
-        shape.stmove.hide()
-        shape.starrow.hide()
-        shape.enarrow.hide()
-        del shape.stmove
-        del shape.starrow
-        del shape.enarrow
-        self.paint_shape(shape)
-        if not shape.isSelected():
-            shape.stmove.hide()
-            shape.starrow.hide()
-            shape.enarrow.hide()
-
-    def paint_shape(self, shape):
-        """
-        Create all plotting related parts of one shape.
-        @param shape: The shape to be plotted.
-        """
-        shape.stmove = self.createstmove(shape)
-
-    def draw_wp_zero(self):
-        """
-        This function is called while the drawing of all items is done. It plots
-        the WPZero to the Point x=0 and y=0. This item will be enabled or
-        disabled to be shown or not.
-        """
-
-    def createstmove(self, shape):
-        """
-        This function creates the Additional Start and End Moves in the plot
-        window when the shape is selected
-        @param shape: The shape for which the Move shall be created.
-        """
-        stmove = StMoveNoGUI(shape)
-        return stmove
-
-    def delete_opt_paths(self):
-        """
-        This function deletes all the plotted export routes.
-        """
-        # removeItem might let it crash, hence we rely on the garbage collector
-        while self.routearrows:
-            item = self.routearrows.pop()
-            item.hide()
-            del item
-
-        while self.routetext:
-            item = self.routetext.pop()
-            item.hide()
-            del item
 
     def addexproutest(self):
         self.expprv = Point(g.config.vars.Plane_Coordinates['axis1_start_end'],
@@ -173,23 +102,6 @@ class MyNoGraphicsScene():
                                             startp=en))
 
 
-    def setShowDisabledPaths(self, flag):
-        """
-        This function is called by the Main Menu and is passed from Main to
-        MyGraphicsView to the Scene. It performs the showing or hiding
-        of enabled/disabled shapes.
-
-        @param flag: This flag is true if hidden paths shall be shown
-        """
-        self.showDisabledPaths = flag
-
-        for shape in self.shapes:
-            if flag and shape.isDisabled():
-                shape.show()
-            elif not flag and shape.isDisabled():
-                shape.hide()
-
-
 class ShapeNoGUI(Shape):
     def __init__(self, nr, closed, parentEntity):
 
@@ -199,9 +111,6 @@ class ShapeNoGUI(Shape):
 
     def __str__(self):
         return super(ShapeNoGUI, self).__str__()
-
-    def tr(self, string_to_translate):
-        return text_type(string_to_translate)
 
     def contains_point(self, point):
 
@@ -217,27 +126,12 @@ class ShapeNoGUI(Shape):
             t += 0.01
         return min_distance
 
-    def boundingRect(self):
-        """
-        Required method for painting. Inherited by Painterpath
-        @return: Gives the Bounding Box
-        """
-        return self.path.boundingRect()
-
-
 class StMoveNoGUI(StMove):
 
     def __init__(self, shape):
         # QGraphicsLineItem.__init__(self)
         StMove.__init__(self, shape)
-
         self.allwaysshow = False
-
-    def contains_point(self, point):
-        """
-        StMove cannot be selected. Return maximal distance
-        """
-        return float(0x7fffffff)
 
     def make_papath(self):
         """
@@ -252,45 +146,3 @@ class StMoveNoGUI(StMove):
         # drawVerLine = lambda caller, start: None  # Not used in 2D mode
         # self.make_path(drawHorLine, drawVerLine)
 
-    def setSelected(self, flag=True):
-        """
-        Override inherited function to turn off selection of Arrows.
-        @param flag: The flag to enable or disable Selection
-        """
-        if self.allwaysshow:
-            pass
-        elif flag is True:
-            self.show()
-        else:
-            self.hide()
-
-    def setallwaysshow(self, flag=False):
-        """
-        If the directions shall be allwaysshown the parameter will be set and
-        all paths will be shown.
-        @param flag: The flag to enable or disable Selection
-        """
-        self.allwaysshow = flag
-        if flag is True:
-            self.show()
-        elif flag is True and self.isSelected():
-            self.show()
-        else:
-            self.hide()
-
-    def paint(self, painter, option, widget=None):
-        """
-        Method will be triggered with each paint event. Possible to give options
-        @param painter: Reference to std. painter
-        @param option: Possible options here
-        @param widget: The widget which is painted on.
-        """
-        painter.setPen(self.pen)
-        painter.drawPath(self.path)
-
-    def boundingRect(self):
-        """
-        Required method for painting. Inherited by Painterpath
-        @return: Gives the Bounding Box
-        """
-        return self.path.boundingRect()
