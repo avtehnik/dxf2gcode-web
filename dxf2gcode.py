@@ -49,7 +49,6 @@ import globals.globals as g
 from globals.logger import LoggerClass
 
 from gui.configwindow import ConfigWindow
-from gui.treehandling import TreeHandlerNoQui
 from gui.popupdialog import PopUpDialog
 
 from dxfimport.importer import ReadDXF
@@ -119,9 +118,6 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.canvas_scene = None
-
-        self.TreeHandler = TreeHandlerNoQui(self.ui)
-
         #Load the post-processor configuration and build the post-processor configuration window
         self.MyPostProcessor = MyPostProcessor()
         # If string version_mismatch isn't empty, we popup an error and exit
@@ -176,35 +172,8 @@ class MainWindow(QMainWindow):
         in the folder.
         """
 
-        logger.debug(self.tr('Export the enabled shapes'))
-
-        # Get the export order from the QTreeView
-        self.TreeHandler.updateExportOrder()
-        self.updateExportRoute()
-
-        logger.debug(self.tr("Sorted layers:"))
-        for i, layer in enumerate(self.layerContents.non_break_layer_iter()):
-            logger.debug("LayerContents[%i] = %s" % (i, layer))
-
-        """
-        Export will be performed according to LayerContents and their order
-        is given in this variable too.
-        """
-
         self.MyPostProcessor.exportShapes(self.filename,save_filename,self.layerContents)
         self.close()
-
-    def updateExportRoute(self):
-        """
-        Update the drawing of the export route
-        """
-
-        self.canvas_scene.addexproutest()
-        for LayerContent in self.layerContents.non_break_layer_iter():
-            if len(LayerContent.exp_order) > 0:
-                self.canvas_scene.addexproute(LayerContent.exp_order, LayerContent.nr)
-        if len(self.canvas_scene.routearrows) > 0:
-            self.canvas_scene.addexprouteen()
 
     def open(self):
         """
@@ -255,9 +224,6 @@ class MainWindow(QMainWindow):
         return True
 
     def plot(self):
-        # Populate the treeViews
-        self.TreeHandler.buildEntitiesTree(self.entityRoot)
-        self.TreeHandler.buildLayerTree(self.layerContents)
 
         # Paint the canvas
         self.canvas_scene = MyNoGraphicsScene()

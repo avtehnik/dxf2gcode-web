@@ -239,3 +239,5 @@ class TreeHandlerNoQui():
                     if real_shape and (not real_shape.isDisabled() or includeDisableds):
                         real_layer.exp_order_complete.append(real_layer.shapes.index(real_shape))  # Create the export order list with the shapes & custom gcode numbers (eg [5, 3, 2, 4, 0, 1])
 
+                print real_layer.exp_order
+                print real_layer.exp_order_complete

@@ -39,13 +39,17 @@ class LayerContent(object):
         self.name = name
         self.shapes = Shapes(shapes)
         self.exp_order = []  # used for shape order optimization, ... Only contains shapes
+        self.exp_order_complete = []
+
+        for idx, shape in enumerate( self.shapes):
+            self.exp_order.append(idx)
+            self.exp_order_complete.append(idx)
 
         # Use default tool 1 (always exists in config)
         self.tool_nr = 1
         self.tool_diameter = g.config.vars.Tool_Parameters['1']['diameter']
         self.speed = g.config.vars.Tool_Parameters['1']['speed']
         self.start_radius = g.config.vars.Tool_Parameters['1']['start_radius']
-        self.exp_order_complete = [1]
 
         # preset defaults
         self.axis3_retract = g.config.vars.Depth_Coordinates['axis3_retract']

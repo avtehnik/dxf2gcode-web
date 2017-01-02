@@ -291,6 +291,9 @@ class MyPostProcessor(object):
                          % (len(LayerContent.shapes), len(LayerContent.exp_order_complete)))
 
             # Perform export only for Layers which have at least 1 Shape to export
+            print LayerContent.exp_order
+            print LayerContent.exp_order_complete
+
             if len(LayerContent.exp_order_complete):
                 exstr += self.commentprint("*** LAYER: %s ***" % LayerContent.name)
 
@@ -299,12 +302,10 @@ class MyPostProcessor(object):
                     exstr += self.chg_tool(LayerContent.tool_nr, LayerContent.speed)
                     previous_tool = LayerContent.tool_nr
 
-                for shape_nr in LayerContent.exp_order_complete:
-                    shape = LayerContent.shapes[shape_nr]
+                # for shape_nr in LayerContent.exp_order_complete:
+                for shape in LayerContent.shapes:
                     logger.debug(self.tr("Beginning export of Shape Nr: %s") % shape.nr)
-
                     exstr += self.commentprint("* SHAPE Nr: %i *" % shape.nr)
-
                     exstr += shape.Write_GCode(self)
 
         # Move machine to the Final Position
