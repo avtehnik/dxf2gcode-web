@@ -206,12 +206,6 @@ class MainWindow(QMainWindow):
         if len(self.canvas_scene.routearrows) > 0:
             self.canvas_scene.addexprouteen()
 
-
-    def isShapeContained(self, shape, outerShape):
-        return shape != outerShape and not \
-            isinstance(outerShape, CustomGCode) and\
-            shape.BB.iscontained(outerShape.BB)
-
     def open(self):
         """
         This function is called by the menu "File/Load File" of the main toolbar.
