@@ -49,7 +49,7 @@ import globals.globals as g
 from globals.logger import LoggerClass
 
 from gui.configwindow import ConfigWindow
-from gui.treehandling import TreeHandler
+from gui.treehandling import TreeHandlerNoQui
 from gui.popupdialog import PopUpDialog
 from gui.aboutdialog import AboutDialog
 
@@ -112,7 +112,6 @@ class MainWindow(QMainWindow):
                                           g.config.var_dict,
                                           g.config.var_dict.configspec,
                                           self)
-        self.config_window.finished.connect(self.updateConfiguration)
 
         self.app = app
 
@@ -124,8 +123,7 @@ class MainWindow(QMainWindow):
 
         self.canvas_scene = None
 
-        self.TreeHandler = TreeHandler(self.ui)
-        self.configuration_changed.connect(self.TreeHandler.updateConfiguration)
+        self.TreeHandler = TreeHandlerNoQui(self.ui)
 
         #Load the post-processor configuration and build the post-processor configuration window
         self.MyPostProcessor = MyPostProcessor()
@@ -723,53 +721,6 @@ class MainWindow(QMainWindow):
         LayerName = self.valuesDXF.layers[lay_nr].name
         self.layerContents.append(LayerContent(lay_nr, LayerName, [shape]))
         shape.parentLayer = self.layerContents[-1]
-
-    def updateConfiguration(self, result):
-        """
-        Some modification occured in the configuration window, we need to save these changes into the config file.
-        Once done, the signal configuration_changed is emitted, so that anyone interested in this information can connect to this signal.
-        """
-        if result == ConfigWindow.Applied or result == ConfigWindow.Accepted:
-            # Write the configuration into the config file (config.cfg)
-            g.config.save_varspace()
-            # Rebuild the readonly configuration structure
-            g.config.update_config()
-
-            # Assign changes to the menus (if no change occured, nothing
-            # happens / otherwise QT emits a signal for the menu entry that has changed)
-            self.connectToolbarToConfig(block_signals=False)
-
-            # Inform about the changes into the configuration
-            self.configuration_changed.emit()
-
-    def loadProject(self, filename):
-        """
-        Load all variables from file
-        """
-        # since Py3 has no longer execfile -  we need to open it manually
-        file_ = open(filename, 'r')
-        str_ = file_.read()
-        file_.close()
-        self.d2g.load(str_)
-
-    def closeEvent(self, e):
-        logger.debug(self.tr("Closing"))
-        # self.writeSettings()
-        e.accept()
-
-    def readSettings(self):
-        settings = QtCore.QSettings("dxf2gcode", "dxf2gcode")
-        settings.beginGroup("MainWindow")
-        self.resize(settings.value("size", QtCore.QSize(800, 600)).toSize())
-        self.move(settings.value("pos", QtCore.QPoint(200, 200)).toPoint())
-        settings.endGroup()
-
-    def writeSettings(self):
-        settings = QtCore.QSettings("dxf2gcode", "dxf2gcode")
-        settings.beginGroup("MainWindow")
-        settings.setValue("size", self.size())
-        settings.setValue("pos", self.pos())
-        settings.endGroup()
 
 
 if __name__ == "__main__":
