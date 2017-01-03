@@ -43,7 +43,6 @@ from core.entitycontent import EntityContent
 from core.customgcode import CustomGCode
 from core.linegeo import LineGeo
 from core.holegeo import HoleGeo
-from core.project import Project
 from globals.config import MyConfig
 import globals.globals as g
 from globals.logger import LoggerClass
