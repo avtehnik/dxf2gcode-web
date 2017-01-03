@@ -36,11 +36,7 @@ import logging
 
 from core.point import Point
 from core.shape import Shape
-from core.boundingbox import BoundingBox
 from core.stmove import StMove
-# from gui.wpzero import WpZero
-# from gui.arrow import Arrow
-from gui.routetext import RouteText
 
 import globals.globals as g
 
@@ -82,7 +78,6 @@ class MyNoGraphicsScene():
     def addexproutest(self):
         self.expprv = Point(g.config.vars.Plane_Coordinates['axis1_start_end'],
                             g.config.vars.Plane_Coordinates['axis2_start_end'])
-        # self.expcol = QtCore.Qt.darkRed
 
     def addexproute(self, exp_order, layer_nr):
         """
@@ -90,16 +85,7 @@ class MyNoGraphicsScene():
         """
         for shape_nr in range(len(exp_order)):
             shape = self.shapes[exp_order[shape_nr]]
-            st = self.expprv
             en, self.expprv = shape.get_start_end_points_physical()
-            # self.routearrows.append(Arrow(startp=en,
-            #                               endp=st,
-            #                               color=self.expcol,
-            #                               pencolor=self.expcol))
-
-
-            self.routetext.append(RouteText(text=("%s,%s" % (layer_nr, shape_nr+1)),
-                                            startp=en))
 
 
 class ShapeNoGUI(Shape):
