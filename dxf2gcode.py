@@ -49,7 +49,6 @@ import globals.globals as g
 from globals.logger import LoggerClass
 
 from gui.configwindow import ConfigWindow
-from gui.popupdialog import PopUpDialog
 
 from dxfimport.importer import ReadDXF
 
@@ -59,14 +58,6 @@ from postpro.tspoptimisation import TspOptimization
 from globals.helperfunctions import str_encode, str_decode, qstr_encode
 
 from globals.six import text_type
-import globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
-    # from PyQt5.QtGui import QSurfaceFormat
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
-    from PyQt4 import QtCore
 
 logger = logging.getLogger()
 
@@ -82,7 +73,7 @@ if os.path.islink(sys.argv[0]):
     g.folder = os.path.dirname(os.readlink(sys.argv[0]))
 
 
-class MainWindow(QMainWindow):
+class MainWindow():
 
     """
     Main Class
@@ -91,15 +82,15 @@ class MainWindow(QMainWindow):
     # Define a QT signal that is emitted when the configuration changes.
     # Connect to this signal if you need to know when the configuration has
     # changed.
-    configuration_changed = QtCore.pyqtSignal()
+    # configuration_changed = QtCore.pyqtSignal()
 
-    def __init__(self, app):
+    def __init__(self):
         """
         Initialization of the Main window. This is directly called after the
         Logger has been initialized. The Function loads the GUI, creates the
         used Classes and connects the actions to the GUI.
         """
-        QMainWindow.__init__(self)
+        # QMainWindow.__init__(self)
 
         # Build the configuration window
         self.config_window = ConfigWindow(g.config.makeConfigWidgets(),
@@ -107,15 +98,11 @@ class MainWindow(QMainWindow):
                                           g.config.var_dict.configspec,
                                           self)
 
-        self.app = app
 
         self.canvas_scene = None
         #Load the post-processor configuration and build the post-processor configuration window
         self.MyPostProcessor = MyPostProcessor()
         # If string version_mismatch isn't empty, we popup an error and exit
-        if self.MyPostProcessor.version_mismatch:
-            error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', self.MyPostProcessor.version_mismatch);
-            sys.exit(error_message.exec_())
 
         self.d2g = Project(self)
 
@@ -147,13 +134,8 @@ class MainWindow(QMainWindow):
         """
         Deletes the optimisation paths from the scene.
         """
-
-        self.app.processEvents()
-
         self.canvas_scene.delete_opt_paths()
         self.canvas_scene.update()
-
-        self.unsetCursor()
 
     def exportShapes(self, status=False, save_filename=None):
         """
@@ -164,7 +146,7 @@ class MainWindow(QMainWindow):
         """
 
         self.MyPostProcessor.exportShapes(self.filename,save_filename,self.layerContents)
-        self.close()
+        # self.close()
 
     def open(self):
         """
@@ -339,25 +321,25 @@ if __name__ == "__main__":
     Log.set_console_handler_loglevel()
     Log.add_file_logger()
 
-    app = QApplication(sys.argv)
+    # app = QApplication(sys.argv)
 
     # Get local language and install if available.
-    locale = QtCore.QLocale.system().name()
-    logger.debug("locale: %s" % locale)
-    translator = QtCore.QTranslator()
-    if translator.load("dxf2gcode_" + locale, "./i18n"):
-        app.installTranslator(translator)
+    # locale = QtCore.QLocale.system().name()
+    # logger.debug("locale: %s" % locale)
+    # translator = QtCore.QTranslator()
+    # if translator.load("dxf2gcode_" + locale, "./i18n"):
+    #     app.installTranslator(translator)
 
     # If string version_mismatch isn't empty, we popup an error and exit
-    if g.config.version_mismatch:
-        error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', g.config.version_mismatch)
-        sys.exit(error_message.exec_())
+    # if g.config.version_mismatch:
+        # error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', g.config.version_mismatch)
+        # sys.exit(error_message.exec_())
 
 
     from gui.canvas2dnogui import MyNoGraphicsScene
     from gui.canvas2dnogui import ShapeNoGUI as Shape
     
-    window = MainWindow(app)
+    window = MainWindow()
     g.window = window
 
     # command line options

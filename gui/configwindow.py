@@ -79,27 +79,11 @@ from globals.helperfunctions import toInt, toFloat, str_encode, qstr_encode
 from globals.six import text_type
 import globals.constants as c
 
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, \
-        QLabel, QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, \
-        QPushButton, QAbstractItemView, QWidget, QSizePolicy, QListWidget, QStackedWidget, QSplitter
-    from PyQt5.QtGui import QIcon, QPixmap, QValidator, QRegExpValidator
-    from PyQt5.QtCore import QLocale, QRegExp
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, QLabel, \
-        QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, \
-        QPushButton, QAbstractItemView, QWidget, QSizePolicy, QIcon, QPixmap, QValidator, QRegExpValidator, \
-        QListWidget, QStackedWidget, QSplitter
-    from PyQt4.QtCore import QLocale, QRegExp
-    from PyQt4 import QtCore
 
 try:
     from collections import OrderedDict
 except ImportError:
     from globals.ordereddict import OrderedDict
-
-from gui.popupdialog import PopUpDialog
 
 logger = logging.getLogger("Gui.ConfigWindow")
 
@@ -150,63 +134,56 @@ class ConfigWindow():
         return text_type(string_to_translate)
 
 
-    def setConfigSelectorCallback(self, selection_changed_callback, add_file_callback, remove_file_callback, duplicate_file_callback):
-        """
-        Define the functions called when the config file selector is used (respectively when a new file is selected in the combobox / when a file is added / when a file is removed)
-        The ConfigWindow class is just toplevel configuration widget, it doesn't know about anything about the data, hence the callback
-        """
-        self.selector_change_callback = selection_changed_callback
-        self.selector_add_callback = add_file_callback
-        self.selector_remove_callback = remove_file_callback
-        self.selector_duplicate_callback = duplicate_file_callback
 
-
-    def setConfigSelectorFilesList(self, config_list, select_item = None):
-        """
-        Define the functions called when the config file selector is used (respectively when a new file is selected in the combobox / when a file is added / when a file is removed)
-        The ConfigWindow class is just toplevel configuration widget, it doesn't know about anything about the data, hence the callback
-        """
-        if len(config_list) > 0:
-            if self.frame_file_selector.layout() is None:
-                #There is currently no file selector widget, so we create a new one
-                self.cfg_file_selector = CfgComboBox("Choose configuration file:", None, None)
-                button_duplicate = QPushButton(QIcon(QPixmap(":/images/layer.png")), "")
-                button_duplicate.setToolTip(self.tr("Duplicate the current post-processor"))
-                button_add = QPushButton(QIcon(QPixmap(":/images/list-add.png")), "")
-                button_add.setToolTip(self.tr("Add a new post-processor with default values"))
-                button_remove = QPushButton(QIcon(QPixmap(":/images/list-remove.png")), "")
-                button_remove.setToolTip(self.tr("Remove the current post-processor"))
-
-                #Connect the signals to call the callback when an action is done on the file selector
-                if self.selector_change_callback is not None:
-                    self.cfg_file_selector.combobox.currentIndexChanged[int].connect(self.selector_change_callback)
-
-                layout_file_selector = QHBoxLayout() #For displaying the optional file's selector widget
-                layout_file_selector.addWidget(self.cfg_file_selector)
-                layout_file_selector.addWidget(button_duplicate)
-                layout_file_selector.addWidget(button_add)
-                layout_file_selector.addWidget(button_remove)
-                self.frame_file_selector.setLayout(layout_file_selector)
-
-            #Fill the combobox with the current file list
-            self.cfg_file_selector.setSpec({'string_list': config_list['filename'], 'comment': ''})
-
-            #Select the item if not None
-            if select_item is not None:
-                self.cfg_file_selector.setValue(select_item)
-
-            #Load the current config
-            if self.selector_change_callback is not None:
-                self.selector_change_callback(self.cfg_file_selector.combobox.currentIndex())
-
-        else:
-            #Item should be a layout or a widget
-            logger.warning("At least one config file must be passed to the config selector!")
-
-            #Remove all the files from the config file selector
-            if self.cfg_file_selector is not None:
-                self.cfg_file_selector.setSpec({'string_list': [], 'comment': ''})
-
+    # def setConfigSelectorFilesList(self, config_list, select_item = None):
+    #     """
+    #     Define the functions called when the config file selector is used (respectively when a new file is selected in the combobox / when a file is added / when a file is removed)
+    #     The ConfigWindow class is just toplevel configuration widget, it doesn't know about anything about the data, hence the callback
+    #     """
+    #     if len(config_list) > 0:
+    #         # if self.frame_file_selector.layout() is None:
+    #             #There is currently no file selector widget, so we create a new one
+    #         self.cfg_file_selector = CfgComboBox("Choose configuration file:", None, None)
+    #         # button_duplicate = QPushButton(QIcon(QPixmap(":/images/layer.png")), "")
+    #         # button_duplicate.setToolTip(self.tr("Duplicate the current post-processor"))
+    #         # button_add = QPushButton(QIcon(QPixmap(":/images/list-add.png")), "")
+    #         # button_add.setToolTip(self.tr("Add a new post-processor with default values"))
+    #         # button_remove = QPushButton(QIcon(QPixmap(":/images/list-remove.png")), "")
+    #         # button_remove.setToolTip(self.tr("Remove the current post-processor"))
+    #
+    #         #Connect the signals to call the callback when an action is done on the file selector
+    #         if self.selector_change_callback is not None:
+    #             print 1
+    #             # self.cfg_file_selector.combobox.currentIndexChanged[int].connect(self.selector_change_callback)
+    #
+    #
+    #         # layout_file_selector = QHBoxLayout() #For displaying the optional file's selector widget
+    #         # layout_file_selector.addWidget(self.cfg_file_selector)
+    #         # layout_file_selector.addWidget(button_duplicate)
+    #         # layout_file_selector.addWidget(button_add)
+    #         # layout_file_selector.addWidget(button_remove)
+    #         # self.frame_file_selector.setLayout(layout_file_selector)
+    #
+    #         #Fill the combobox with the current file list
+    #         self.cfg_file_selector.setSpec({'string_list': config_list['filename'], 'comment': ''})
+    #
+    #         #Select the item if not None
+    #         if select_item is not None:
+    #             self.cfg_file_selector.setValue(select_item)
+    #
+    #         #Load the current config
+    #         if self.selector_change_callback is not None:
+    #             print 1
+    #             # self.selector_change_callback(self.cfg_file_selector.combobox.currentIndex())
+    #
+    #     else:
+    #         #Item should be a layout or a widget
+    #         logger.warning("At least one config file must be passed to the config selector!")
+    #
+    #         #Remove all the files from the config file selector
+    #         if self.cfg_file_selector is not None:
+    #             self.cfg_file_selector.setSpec({'string_list': [], 'comment': ''})
+    #
 
 
     # def createWidgetFromDefinitionDict(self):
@@ -499,25 +476,25 @@ class ConfigWindow():
          - result_string: a string containing all the errors encountered during the validation
         """
         #Compute all the sections
-        for section in window_def:
-            #skip the special section __section_title__
-            if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
-                continue
-
-            if isinstance(window_def[section], dict):
-                #Browse sublevels
-                (result_bool, result_string) = self.validateConfiguration(window_def[section], result_string, result_bool) #Recursive call, until we find a real item (not a dictionnary with subtree)
-            else:
-                if isinstance(window_def[section], (QWidget, QLayout)):
-                    #check that the value is correct for each widget
-                    result = window_def[section].validateValue()
-                    if result[0] is False: result_bool = False
-                    result_string += result[1]
-                else:
-                    #Item should be a layout or a widget
-                    logger.warning("item {0} is not a widget, can't validate it!".format(window_def[section]))
-
-        return (result_bool, result_string)
+        # for section in window_def:
+        #     #skip the special section __section_title__
+        #     if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
+        #         continue
+        #
+        #     if isinstance(window_def[section], dict):
+        #         #Browse sublevels
+        #         (result_bool, result_string) = self.validateConfiguration(window_def[section], result_string, result_bool) #Recursive call, until we find a real item (not a dictionnary with subtree)
+        #     else:
+        #         if isinstance(window_def[section], (QWidget, QLayout)):
+        #             #check that the value is correct for each widget
+        #             result = window_def[section].validateValue()
+        #             if result[0] is False: result_bool = False
+        #             result_string += result[1]
+        #         else:
+        #             #Item should be a layout or a widget
+        #             logger.warning("item {0} is not a widget, can't validate it!".format(window_def[section]))
+        #
+        # return (result_bool, result_string)
 
 
     def updateConfiguration(self, window_def, config):
@@ -528,42 +505,43 @@ class ConfigWindow():
         @param config: data readed from the configfile. This dict is created by ConfigObj module and will be updated here.
         """
         #Compute all the sections
-        for section in window_def:
-            #skip the special section __section_title__
-            if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
-                continue
-
-            if config is not None and section in config:
-                if isinstance(window_def[section], dict):
-                    #Browse sublevels
-                    self.updateConfiguration(window_def[section], config[section]) #Recursive call, until we find a real item (not a dictionnary with subtree)
-                else:
-                    if isinstance(window_def[section], (QWidget, QLayout)):
-                        #assign the value that was readed from the configfile
-                        config[section] = window_def[section].getValue()
-                    else:
-                        #Item should be a layout or a widget
-                        logger.warning("item {0} is not a widget, can't update it!".format(window_def[section]))
-            else:
-                logger.error("can't update configuration, item or section {0} not found in config file!".format(section))
-
+        # for section in window_def:
+        #     #skip the special section __section_title__
+        #     if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
+        #         continue
+        #
+        #     if config is not None and section in config:
+        #         if isinstance(window_def[section], dict):
+        #             #Browse sublevels
+        #             self.updateConfiguration(window_def[section], config[section]) #Recursive call, until we find a real item (not a dictionnary with subtree)
+        #         else:
+        #             if isinstance(window_def[section], (QWidget, QLayout)):
+        #                 #assign the value that was readed from the configfile
+        #                 config[section] = window_def[section].getValue()
+        #             else:
+        #                 #Item should be a layout or a widget
+        #                 logger.warning("item {0} is not a widget, can't update it!".format(window_def[section]))
+        #     else:
+        #         logger.error("can't update configuration, item or section {0} not found in config file!".format(section))
+        #
 
 
 ############################################################################################################################
 # The classes below are all based on QWidgets and allow to create various predefined elements for the configuration window #
 ############################################################################################################################
 
-class CfgBase(QWidget):
+class CfgBase():
     """
     Base class used only for setting the Layout. Want a consistent look.
     """
     def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
+        print 1
+        # QWidget.__init__(self, parent)
 
     def setLayout(self, layout=None, indent=True):
         layout.setSpacing(2)  # Don't use too much space, it makes the option window too big otherwise
         layout.setContentsMargins(10 if indent else 0, 5, 1, 1)
-        QWidget.setLayout(self, layout)
+        # QWidget.setLayout(self, layout)
 
 
 class CfgDummy(CfgBase):
@@ -580,8 +558,8 @@ class CfgSubtitle(CfgDummy):
 
         layout = QHBoxLayout()
 
-        if text is not None:
-            layout.addWidget(QLabel(text))
+        # if text is not None:
+            # layout.addWidget(QLabel(text))
 
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
@@ -748,7 +726,7 @@ class CfgCheckBox(CfgBase):
 #         self.spinbox.blockSignals(False)
 
 
-class CorrectedDoubleSpinBox(QDoubleSpinBox):
+class CorrectedDoubleSpinBox():
     """
     Subclassed QDoubleSpinBox to get a version that works for everyone ...
     DON'T remove this class, it is a correction for the guys who decided to use comma (',') as a decimal separator (France, Italy, ...) but failed to use comma on the keypad (keypad use dot, not comma)!
@@ -758,7 +736,7 @@ class CorrectedDoubleSpinBox(QDoubleSpinBox):
     """
 
     def __init__(self, parent = None):
-        QDoubleSpinBox.__init__(self, parent)
+        # QDoubleSpinBox.__init__(self, parent)
         self.saved_suffix = ''
         #Let's use the locale decimal separator if it is different from the dot ('.')
         local_decimal_separator = QLocale().decimalPoint()
@@ -768,7 +746,7 @@ class CorrectedDoubleSpinBox(QDoubleSpinBox):
 
     def setSuffix(self, suffix):
         self.saved_suffix = suffix
-        QDoubleSpinBox.setSuffix(self, suffix)
+        # QDoubleSpinBox.setSuffix(self, suffix)
 
     def valueFromText(self, text):
         # result = float(text.replace('.', QLocale().decimalPoint()))
@@ -834,17 +812,17 @@ class CfgLineEdit(CfgBase):
         """
         CfgBase.__init__(self, parent)
 
-        self.label = QLabel(text, parent)
+        # self.label = QLabel(text, parent)
 
-        self.lineedit = QLineEdit(parent)
+        # self.lineedit = QLineEdit(parent)
 
-        layout = QVBoxLayout(parent)
-        layout.addWidget(self.label)
-        layout.addWidget(self.lineedit)
-        self.setLayout(layout)
-
-        self.size_min = 0
-        self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
+        # layout = QVBoxLayout(parent)
+        # layout.addWidget(self.label)
+        # layout.addWidget(self.lineedit)
+        # self.setLayout(layout)
+        #
+        # self.size_min = 0
+        # self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
 
     def setSpec(self, spec):
         """
@@ -949,19 +927,19 @@ class CfgTextEdit(CfgBase):
         """
         CfgBase.__init__(self, parent)
 
-        self.label = QLabel(text, parent)
-
-        self.textedit = QTextEdit(parent)
-        self.textedit.setAcceptRichText(False)
-        self.textedit.setAutoFormatting(QTextEdit.AutoNone)
-
-        layout = QVBoxLayout(parent)
-        layout.addWidget(self.label)
-        layout.addWidget(self.textedit)
-        self.setLayout(layout)
-
-        self.size_min = 0
-        self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
+        # self.label = QLabel(text, parent)
+        #
+        # self.textedit = QTextEdit(parent)
+        # self.textedit.setAcceptRichText(False)
+        # self.textedit.setAutoFormatting(QTextEdit.AutoNone)
+        #
+        # layout = QVBoxLayout(parent)
+        # layout.addWidget(self.label)
+        # layout.addWidget(self.textedit)
+        # self.setLayout(layout)
+        #
+        # self.size_min = 0
+        # self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
 
     def setSpec(self, spec):
         """
@@ -1029,41 +1007,41 @@ class CfgComboBox(CfgBase):
         """
         CfgBase.__init__(self, parent)
 
-        if isinstance(items_list, (list, tuple)):
-            self.setSpec({'string_list': items_list, 'comment': ''})
-        if default_item is not None:
-            self.setValue(default_item)
+        # if isinstance(items_list, (list, tuple)):
+        #     self.setSpec({'string_list': items_list, 'comment': ''})
+        # if default_item is not None:
+        #     self.setValue(default_item)
 
-        self.label = QLabel(text, parent)
-
-        self.combobox = QComboBox(parent)
-        self.combobox.setMinimumWidth(200)  # Provide better alignment with other items
-
-        layout = QHBoxLayout(parent)
-        layout.addWidget(self.label)
-        layout.addStretch()
-        layout.addWidget(self.combobox)
-        self.setLayout(layout)
+        # self.label = QLabel(text, parent)
+        #
+        # self.combobox = QComboBox(parent)
+        # self.combobox.setMinimumWidth(200)  # Provide better alignment with other items
+        #
+        # layout = QHBoxLayout(parent)
+        # layout.addWidget(self.label)
+        # layout.addStretch()
+        # layout.addWidget(self.combobox)
+        # self.setLayout(layout)
 
     def setSpec(self, spec):
         """
         Set the specifications for the item (min/max values, ...)
         @param spec: the specifications dict (can contain the following keys: minimum, maximum, comment, string_list)
         """
-        self.combobox.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
-        self.combobox.clear()
-        self.combobox.addItems(spec['string_list'])
+        # self.combobox.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
+        # self.combobox.clear()
+        # self.combobox.addItems(spec['string_list'])
 
         if spec['comment']:
             self.setWhatsThis(spec['comment'])
-        self.combobox.blockSignals(False)
+        # self.combobox.blockSignals(False)
 
     def setChangeSlot(self, changeNotifyer):
         """
         Assign a notifyier slot (this slot is called whenever the state of the widget changes)
         @param changeNotifyer: the function (slot) that is called in case of change
         """
-        self.combobox.currentIndexChanged.connect(changeNotifyer)
+        # self.combobox.currentIndexChanged.connect(changeNotifyer)
 
     def validateValue(self):
         """
@@ -1076,25 +1054,25 @@ class CfgComboBox(CfgBase):
         """
         @return: the string of the currently selected entry
         """
-        return self.combobox.currentText()
+        # return self.combobox.currentText()
 
     def setValue(self, value):
         """
         Assign the value for our object
         @param value: the text of the entry to select in the combobox
         """
-        self.combobox.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
-        self.combobox.setCurrentIndex(self.combobox.findText(value)) #Compatible with both PyQt4 and PyQt5
-        self.combobox.blockSignals(False)
+        # self.combobox.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
+        # self.combobox.setCurrentIndex(self.combobox.findText(value)) #Compatible with both PyQt4 and PyQt5
+        # self.combobox.blockSignals(False)
 
 
-class CfgTable(QWidget):
+class CfgTable():
     """
     Subclassed QTableWidget to match our needs.
     """
     #Define a QT signal that is emitted when the table is modified.
     #Note: this signal is not emitted in this class ; it is up to the subclasses to emit it
-    tableChanged = QtCore.pyqtSignal()
+    # tableChanged = QtCore.pyqtSignal()
 
     def __init__(self, text, columns = None, parent = None):
         """
@@ -1102,42 +1080,42 @@ class CfgTable(QWidget):
         @param text: text string associated with the table
         @param columns: string list containing all the columns names
         """
-        QWidget.__init__(self, parent)
+        # QWidget.__init__(self, parent)
 
-        self.tablewidget = QTableWidget(parent)
-        self.tablewidget.setSelectionBehavior(QAbstractItemView.SelectRows)
-        if isinstance(columns, (list, tuple)):
-            self.setSpec({'string_list': columns, 'comment': ''})
-        else:
-            self.keys = [] #No columns yet
-        self.tablewidget.horizontalHeader().setStretchLastSection(True)
-        self.tablewidget.horizontalHeader().sectionClicked.connect(self.tablewidget.clearSelection) #Allow to unselect the lines by clicking on the column name (useful to add a line at the end)
-
-        self.label = QLabel(text, parent)
-        self.button_add = QPushButton(QIcon(QPixmap(":/images/list-add.png")), "")
-        self.button_remove = QPushButton(QIcon(QPixmap(":/images/list-remove.png")), "")
-        self.button_add.clicked.connect(self.appendLine)
-        self.button_remove.clicked.connect(self.removeLine)
-        self.layout_button = QVBoxLayout()
-        self.layout_button.addWidget(self.button_add)
-        self.layout_button.addWidget(self.button_remove)
-
-        self.layout_table = QHBoxLayout()
-        #self.tablewidget.setSizePolicy(size_policy)
-        self.layout_table.addWidget(self.tablewidget)
-        self.layout_table.addLayout(self.layout_button)
-
-        self.layout = QVBoxLayout(parent)
-
-        self.layout.addWidget(self.label)
-        self.layout.addLayout(self.layout_table)
-        self.setLayout(self.layout)
-
-        #Ensure that the table always expand to the maximum available space
-        size_policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        size_policy.setVerticalStretch(10)
-        size_policy.setHorizontalStretch(10)
-        self.setSizePolicy(size_policy)
+        # # self.tablewidget = QTableWidget(parent)
+        # # self.tablewidget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # # if isinstance(columns, (list, tuple)):
+        #     self.setSpec({'string_list': columns, 'comment': ''})
+        # else:
+        #     self.keys = [] #No columns yet
+        # self.tablewidget.horizontalHeader().setStretchLastSection(True)
+        # self.tablewidget.horizontalHeader().sectionClicked.connect(self.tablewidget.clearSelection) #Allow to unselect the lines by clicking on the column name (useful to add a line at the end)
+        #
+        # self.label = QLabel(text, parent)
+        # self.button_add = QPushButton(QIcon(QPixmap(":/images/list-add.png")), "")
+        # self.button_remove = QPushButton(QIcon(QPixmap(":/images/list-remove.png")), "")
+        # self.button_add.clicked.connect(self.appendLine)
+        # self.button_remove.clicked.connect(self.removeLine)
+        # self.layout_button = QVBoxLayout()
+        # self.layout_button.addWidget(self.button_add)
+        # self.layout_button.addWidget(self.button_remove)
+        #
+        # self.layout_table = QHBoxLayout()
+        # #self.tablewidget.setSizePolicy(size_policy)
+        # self.layout_table.addWidget(self.tablewidget)
+        # self.layout_table.addLayout(self.layout_button)
+        #
+        # self.layout = QVBoxLayout(parent)
+        #
+        # self.layout.addWidget(self.label)
+        # self.layout.addLayout(self.layout_table)
+        # self.setLayout(self.layout)
+        #
+        # #Ensure that the table always expand to the maximum available space
+        # size_policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # size_policy.setVerticalStretch(10)
+        # size_policy.setHorizontalStretch(10)
+        # self.setSizePolicy(size_policy)
 
     def setSpec(self, spec):
         """

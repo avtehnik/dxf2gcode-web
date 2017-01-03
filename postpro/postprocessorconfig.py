@@ -229,7 +229,9 @@ class MyPostProConfig(object):
         Call this function each time the self.var_dict is updated (eg when the postprocessor configuration window changes some settings)
         """
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
+        # print  self.var_dict;
         self.vars = DictDotLookup(self.var_dict)
+        # print self.vars.General["abs_export"];
         # add here any update needed for the internal variables of this class
 
 
@@ -298,9 +300,12 @@ class DictDotLookup(object):
     """
     def __init__(self, d):
         for k in d:
+            # print k
             if isinstance(d[k], dict):
+                # print "dict"
                 self.__dict__[k] = DictDotLookup(d[k])
             elif isinstance(d[k], (list, tuple)):
+                # print "list, tuple "
                 l = []
                 for v in d[k]:
                     if isinstance(v, dict):
@@ -309,6 +314,8 @@ class DictDotLookup(object):
                         l.append(v)
                 self.__dict__[k] = l
             else:
+                # print "else"
+                # print d[k]
                 self.__dict__[k] = d[k]
 
     def __getitem__(self, name):
