@@ -100,9 +100,6 @@ class MainWindow():
         self.MyPostProcessor = MyPostProcessor()
         # If string version_mismatch isn't empty, we popup an error and exit
 
-        self.d2g = Project(self)
-
-
         self.filename = ""
 
         self.valuesDXF = None
@@ -363,6 +360,3 @@ if __name__ == "__main__":
     if options.export_filename is not None:
         window.exportShapes(None, options.export_filename)
 
-    if not options.quiet:
-        # It's exec_ because exec is a reserved word in Python
-        sys.exit(app.exec_())
