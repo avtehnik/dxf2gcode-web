@@ -90,14 +90,11 @@ class MainWindow():
         Logger has been initialized. The Function loads the GUI, creates the
         used Classes and connects the actions to the GUI.
         """
-        # QMainWindow.__init__(self)
 
-        # Build the configuration window
         self.config_window = ConfigWindow(g.config.makeConfigWidgets(),
                                           g.config.var_dict,
                                           g.config.var_dict.configspec,
                                           self)
-
 
         self.canvas_scene = None
         #Load the post-processor configuration and build the post-processor configuration window
