@@ -65,7 +65,7 @@ ch = logging.StreamHandler(sys.stdout)
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
-logger.addHandler(ch)
+# logger.addHandler(ch)
 
 # Get folder of the main instance and write into globals
 g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
@@ -334,8 +334,9 @@ if __name__ == "__main__":
 
 
     from gui.canvas2dnogui import MyNoGraphicsScene
-    from gui.canvas2dnogui import ShapeNoGUI as Shape
-    
+    # from gui.canvas2dnogui import ShapeNoGUI as Shape
+    from core.shape import Shape
+
     window = MainWindow()
     g.window = window
 

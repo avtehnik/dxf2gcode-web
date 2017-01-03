@@ -195,8 +195,8 @@ class MyPostProcessor(object):
                          % (len(LayerContent.shapes), len(LayerContent.exp_order_complete)))
 
             # Perform export only for Layers which have at least 1 Shape to export
-            print LayerContent.exp_order
-            print LayerContent.exp_order_complete
+            # print LayerContent.exp_order
+            # print LayerContent.exp_order_complete
 
             if len(LayerContent.exp_order_complete):
                 exstr += self.commentprint("*** LAYER: %s ***" % LayerContent.name)
@@ -221,17 +221,17 @@ class MyPostProcessor(object):
         # Write the end G-Code at the end
         exstr += self.write_gcode_en()
 
-        exstr = self.make_line_numbers(exstr)
-        # print(exstr)
-        try:
-            # File open and write
-            f = open(save_filename, "w")
-            f.write(str_encode(exstr))
-            f.close()
-            logger.info("Export to FILE was successful")
-        except IOError:
-            logger.info("Warning during Export")
-            logger.info("Cannot Save the File")
+        # exstr = self.make_line_numbers(exstr)
+        print(exstr)
+        # try:
+        #     # File open and write
+        #     f = open(save_filename, "w")
+        #     f.write(str_encode(exstr))
+        #     f.close()
+        #     logger.info("Export to FILE was successful")
+        # except IOError:
+        #     logger.info("Warning during Export")
+        #     logger.info("Cannot Save the File")
 
     def initialize_export_vars(self):
         """

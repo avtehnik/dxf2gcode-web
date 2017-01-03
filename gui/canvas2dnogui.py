@@ -35,16 +35,11 @@ from __future__ import division
 import logging
 
 from core.point import Point
-from core.shape import Shape
 from core.stmove import StMove
 
 import globals.globals as g
 
-from globals.six import text_type
-import globals.constants as c
-
 logger = logging.getLogger("DxfImport.myCanvasClass")
-
 
 class MyNoGraphicsScene():
     """
@@ -72,7 +67,8 @@ class MyNoGraphicsScene():
         used to scale or offset the base geometry (by Menu in GUI).
         """
         for shape in shapes:
-            shape.stmove = StMoveNoGUI(shape)
+            shape.stmove = StMove(shape)
+            # StMove.__init__(self, shape)
             self.shapes.append(shape)
 
     def addexproutest(self):
@@ -86,49 +82,3 @@ class MyNoGraphicsScene():
         for shape_nr in range(len(exp_order)):
             shape = self.shapes[exp_order[shape_nr]]
             en, self.expprv = shape.get_start_end_points_physical()
-
-
-class ShapeNoGUI(Shape):
-    def __init__(self, nr, closed, parentEntity):
-
-        Shape.__init__(self, nr, closed, parentEntity)
-        self.starrow = None
-        self.enarrow = None
-
-    def __str__(self):
-        return super(ShapeNoGUI, self).__str__()
-
-    def contains_point(self, point):
-
-        min_distance = float(0x7fffffff)
-        ref_point = Point(point.x(), point.y())
-        t = 0.0
-        while t < 1.0:
-            per_point = self.path.pointAtPercent(t)
-            spline_point = Point(per_point.x(), per_point.y())
-            distance = ref_point.distance(spline_point)
-            if distance < min_distance:
-                min_distance = distance
-            t += 0.01
-        return min_distance
-
-class StMoveNoGUI(StMove):
-
-    def __init__(self, shape):
-        # QGraphicsLineItem.__init__(self)
-        StMove.__init__(self, shape)
-        self.allwaysshow = False
-
-    def make_papath(self):
-        """
-        To be called if a Shape shall be printed to the canvas
-        @param canvas: The canvas to be printed in
-        @param pospro: The color of the shape
-        """
-        # if len(self.geos):
-        #     start = self.geos.abs_el(0).get_start_end_points(True)
-        #     self.path.moveTo(start.x, -start.y)
-        # drawHorLine = lambda caller, start, end: self.path.lineTo(end.x, -end.y)
-        # drawVerLine = lambda caller, start: None  # Not used in 2D mode
-        # self.make_path(drawHorLine, drawVerLine)
-
