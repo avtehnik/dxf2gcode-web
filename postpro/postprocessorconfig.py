@@ -287,63 +287,7 @@ class MyPostProConfig(object):
         The structure of the dictionnary must match the structure of the postprocessor configuration file. The names of the keys must be identical to those used in the configfile.
         If a name is declared in the configfile but not here, it simply won't appear in the config window (the config_version for example must not be modified by the user, so it is not declared here)
         """
-        cfg_widget_def = OrderedDict([
-            ('General', OrderedDict([
-                ('__section_title__', MyPostProConfig.tr("Software config")),
-                ('__subtitle__', CfgSubtitle(MyPostProConfig.tr("Output specifications"))),
-                ('output_text', CfgLineEdit(MyPostProConfig.tr('Output format description:'))),
-                ('output_format', CfgLineEdit(MyPostProConfig.tr('Output file extension:'))),
-                ('output_type', CfgComboBox(MyPostProConfig.tr('Output type:'))),
-                ('__subtitle2__', CfgSubtitle(MyPostProConfig.tr("Output options"))),
-                ('abs_export', CfgCheckBox(MyPostProConfig.tr('Export absolute coordinates'))),
-                ('cancel_cc_for_depth', CfgCheckBox(MyPostProConfig.tr('Cancel cutter compensation at each slice'))),
-                ('cc_outside_the_piece', CfgCheckBox(MyPostProConfig.tr('Perform cutter compensation outside the piece'))),
-                ('export_ccw_arcs_only', CfgCheckBox(MyPostProConfig.tr('Export only counter clockwise arcs'))),
-                ('max_arc_radius', CfgDoubleSpinBox(MyPostProConfig.tr('Maximum arc radius:'))),
-                ('__subtitle3__', CfgSubtitle(MyPostProConfig.tr("G-code constants"))),
-                ('code_begin_units_mm', CfgLineEdit(MyPostProConfig.tr('Units in millimeters:'))),
-                ('code_begin_units_in', CfgLineEdit(MyPostProConfig.tr('Units in inch:'))),
-                ('code_begin_prog_abs', CfgLineEdit(MyPostProConfig.tr('Absolute programming:'))),
-                ('code_begin_prog_inc', CfgLineEdit(MyPostProConfig.tr('Incremental programming:'))),
-                ('code_begin', CfgTextEdit(MyPostProConfig.tr('Startup:'))),
-                ('code_end', CfgTextEdit(MyPostProConfig.tr('End:')))
-            ])),
-            ('Number_Format', OrderedDict([
-                ('__section_title__', MyPostProConfig.tr("Output formatting")),
-                ('__subtitle__', CfgSubtitle(MyPostProConfig.tr("Output formatting"))),
-                ('signed_values', CfgCheckBox(MyPostProConfig.tr("Prepend numbers with the '+' sign for positive values"))),
-                ('pre_decimals', CfgSpinBox(MyPostProConfig.tr('Number of digits before the decimal separator:'))),
-                ('pre_decimal_zero_padding', CfgCheckBox(MyPostProConfig.tr("Padding with '0' digit before the decimal separator"))),
-                ('post_decimals', CfgSpinBox(MyPostProConfig.tr('Number of digits after the decimal separator:'))),
-                ('post_decimal_zero_padding', CfgCheckBox(MyPostProConfig.tr("Padding with '0' digit after the decimal separator"))),
-                ('decimal_separator', CfgLineEdit(MyPostProConfig.tr('Decimal separator:')))
-            ])),
-            ('Line_Numbers', OrderedDict([
-                ('__section_title__', MyPostProConfig.tr("Output formatting")),
-                ('__subtitle__', CfgSubtitle(MyPostProConfig.tr("Line numbers"))),
-                ('use_line_nrs', CfgCheckBox(MyPostProConfig.tr('Export line numbers'))),
-                ('line_nrs_begin', CfgSpinBox(MyPostProConfig.tr('Line number starts at:'))),
-                ('line_nrs_step', CfgSpinBox(MyPostProConfig.tr('Line number step:')))
-            ])),
-            ('Program', OrderedDict([
-                ('__section_title__', MyPostProConfig.tr("G-code codes")),
-                ('tool_change', CfgLineEdit(MyPostProConfig.tr('Tool change:'))),
-                ('feed_change', CfgLineEdit(MyPostProConfig.tr('Feed rate change:'))),
-                ('rap_pos_plane', CfgLineEdit(MyPostProConfig.tr('Rapid positioning for XY plane:'))),
-                ('rap_pos_depth', CfgLineEdit(MyPostProConfig.tr('Rapid positioning for Z plane:'))),
-                ('lin_mov_plane', CfgLineEdit(MyPostProConfig.tr('Linear feed move for XY plane:'))),
-                ('lin_mov_depth', CfgLineEdit(MyPostProConfig.tr('Linear feed move for Z plane:'))),
-                ('arc_int_cw', CfgLineEdit(MyPostProConfig.tr('Clockwise feed move:'))),
-                ('arc_int_ccw', CfgLineEdit(MyPostProConfig.tr('Counter clockwise feed move:'))),
-                ('cutter_comp_off', CfgLineEdit(MyPostProConfig.tr('Disable cutter compensation:'))),
-                ('cutter_comp_left', CfgLineEdit(MyPostProConfig.tr('Left cutter compensation:'))),
-                ('cutter_comp_right', CfgLineEdit(MyPostProConfig.tr('Right cutter compensation:'))),
-                ('pre_shape_cut', CfgLineEdit(MyPostProConfig.tr('Placed in front of any shape:'))),
-                ('post_shape_cut', CfgLineEdit(MyPostProConfig.tr('Placed after any shape:'))),
-                ('comment', CfgLineEdit(MyPostProConfig.tr('Comment for current shape:')))
-            ]))
-        ])
-
+        cfg_widget_def = OrderedDict([ ])
         return cfg_widget_def
 
 

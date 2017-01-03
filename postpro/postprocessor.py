@@ -77,8 +77,6 @@ class MyPostProcessor(object):
         # #Enable the config file selector into the configuration widget
         self.config_postpro_window.setConfigSelectorCallback(self.postproConfigSelectionChangedCallback, self.postproConfigAddFileCallback, self.postproConfigRemoveFileCallback, self.postproConfigDuplicateFileCallback)
         self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList()) #Set the list of current configuration files
-        self.config_postpro_window.finished.connect(self.updatePostprocessorConfiguration)
-
 
     def tr(self, string_to_translate):
         """
@@ -87,16 +85,6 @@ class MyPostProcessor(object):
         @return: the translated unicode string if it was possible to translate
         """
         return text_type(string_to_translate)
-
-    def updatePostprocessorConfiguration(self, result):
-        """
-        Some modification occured in the postprocessor configuration window, we need to save these changes into the config file.
-        Once done, the signal postprocessor_configuration_changed is emitted, so that anyone interested in this information can connect to this signal.
-        """
-        if result == ConfigWindow.Applied or result == ConfigWindow.Accepted:
-            self.postpro_config_currently_edited.save_varspace() #Write the configuration into the config file (eg postpro_config.cfg, ...)
-            self.postpro_config_currently_edited.update_config()
-
 
     def postproConfigSelectionChangedCallback(self, config_file_index):
         """

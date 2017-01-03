@@ -62,15 +62,11 @@ from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
-    from PyQt5.QtGui import QSurfaceFormat
+    # from PyQt5.QtGui import QSurfaceFormat
     from PyQt5 import QtCore
-    getOpenFileName = QFileDialog.getOpenFileName
-    getSaveFileName = QFileDialog.getSaveFileName
 else:
     from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
     from PyQt4 import QtCore
-    getOpenFileName = QFileDialog.getOpenFileNameAndFilter
-    getSaveFileName = QFileDialog.getSaveFileNameAndFilter
 
 logger = logging.getLogger()
 
@@ -112,10 +108,6 @@ class MainWindow(QMainWindow):
                                           self)
 
         self.app = app
-
-        self.ui = Ui_MainWindow()
-
-        self.ui.setupUi(self)
 
         self.canvas_scene = None
         #Load the post-processor configuration and build the post-processor configuration window
@@ -159,7 +151,6 @@ class MainWindow(QMainWindow):
         self.app.processEvents()
 
         self.canvas_scene.delete_opt_paths()
-        self.ui.actionDeleteG0Paths.setEnabled(False)
         self.canvas_scene.update()
 
         self.unsetCursor()
@@ -362,19 +353,12 @@ if __name__ == "__main__":
         error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', g.config.version_mismatch)
         sys.exit(error_message.exec_())
 
-    # Delay imports - needs to be done after logger and config initialization; and before the main window
-    if c.PYQT5notPYQT4:
-        from dxf2gcode_ui5 import Ui_MainWindow
-    else:
-        from dxf2gcode_ui4 import Ui_MainWindow
 
     from gui.canvas2dnogui import MyNoGraphicsScene
     from gui.canvas2dnogui import ShapeNoGUI as Shape
     
     window = MainWindow(app)
     g.window = window
-    
-    Log.add_window_logger(window.ui.messageBox)
 
     # command line options
     parser = argparse.ArgumentParser()

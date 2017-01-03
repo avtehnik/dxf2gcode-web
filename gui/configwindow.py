@@ -104,8 +104,8 @@ from gui.popupdialog import PopUpDialog
 logger = logging.getLogger("Gui.ConfigWindow")
 
 
-class ConfigWindow(QDialog):
-    Applied = QDialog.Accepted + QDialog.Rejected + 1 #Define a result code that is different from accepted and rejected
+class ConfigWindow():
+    # Applied = QDialog.Accepted + QDialog.Rejected + 1 #Define a result code that is different from accepted and rejected
 
     """Main Class"""
     def __init__(self, definition_dict, config = None, configspec = None, parent = None, title = "Configuration"):
@@ -115,12 +115,6 @@ class ConfigWindow(QDialog):
         @param config: data readed from the configfile. This dict is created by ConfigObj module.
         @param configspec: specifications of the configfile. This variable is created by ConfigObj module.
         """
-        QDialog.__init__(self, parent)
-        self.setWindowTitle(title)
-        iconWT = QIcon()
-        iconWT.addPixmap(QPixmap(":images/DXF2GCODE-001.ico"), QIcon.Normal, QIcon.Off)
-        self.setWindowIcon(QIcon(iconWT))
-
         self.edition_mode = False #No editing in progress for now
 
         self.cfg_window_def = definition_dict #This is the dict that describes our window
@@ -138,61 +132,13 @@ class ConfigWindow(QDialog):
         self.frame_file_selector = CfgBase() #For displaying the optionnal files selector widgets
 
         #Create the config window according to the description dict received
-        self.list_items = self.createWidgetFromDefinitionDict()
-
-        #Create 3 buttons
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Discard | QDialogButtonBox.Apply | QDialogButtonBox.Close)
-        self.button_box.accepted.connect(self.accept) #Apply and close (currently unused)
-        self.button_box.rejected.connect(self.reject) #Close
-        apply_button = self.button_box.button(QDialogButtonBox.Apply)
-        apply_button.clicked.connect(self.applyChanges) #Apply button
-        discard_button = self.button_box.button(QDialogButtonBox.Discard)
-        discard_button.clicked.connect(self.discardChanges) #Discard button
-
-        #Layout
-        list_widget = QListWidget(parent)
-        self.tab_window = QStackedWidget()
-        for label, widget in self.list_items.items():
-            list_widget.addItem(label)
-            self.tab_window.addWidget(widget)
-
-        list_widget.currentTextChanged.connect(self.selectionChanged)
-
-        tab_widget = CfgBase()
-        tab_box = QVBoxLayout(self)
-        tab_box.addWidget(self.frame_file_selector)
-        tab_box.addWidget(self.tab_window)
-        tab_widget.setLayout(tab_box)
-
-        splitter = QSplitter()
-        splitter.addWidget(list_widget)
-        splitter.addWidget(tab_widget)
-
-        #Layout the 2 above widgets vertically
-        v_box = QVBoxLayout(self)
-        v_box.addWidget(splitter)
-        v_box.addWidget(self.button_box)
-        self.setLayout(v_box)
-
+        # self.list_items = self.createWidgetFromDefinitionDict()
         #Populate our Configuration widget with the values from the config file
         if self.var_dict is not None and self.configspec is not None:
             self.affectValuesFromConfig(self.var_dict, self.configspec)
 
         #No modification in progress for now
-        self.setEditInProgress(False)
 
-
-    def keyPressEvent(self, event):
-        """
-        Reimplemented keyPressEvent() function so that we can catch and ignore the [ENTER] key
-        (When pressed inside a QDialog, this key apply the changes by default)
-        """
-        if event.key() == QtCore.Qt.Key_Enter or event.key() == QtCore.Qt.Key_Return:
-            #key [ENTER]
-            event.accept() #We caught the key and we "eat" it, so it prevents its default behaviour
-        else:
-            #Default behaviour for all the other keys
-            QDialog.keyPressEvent(self, event)
 
 
     def tr(self, string_to_translate):
@@ -202,82 +148,6 @@ class ConfigWindow(QDialog):
         @return: the translated unicode string if it was possible to translate
         """
         return text_type(string_to_translate)
-
-
-    def setEditInProgress(self, edit_mode):
-        """
-        @param edit_mode: when True, the configuration window swith to edition mode, meaning that the "Apply" and "OK" buttons are enabled, ...
-        """
-        editor_mode = edit_mode != False
-        self.button_box.button(QDialogButtonBox.Apply).setEnabled(editor_mode)
-        self.button_box.button(QDialogButtonBox.Discard).setEnabled(editor_mode)
-        self.button_box.button(QDialogButtonBox.Close).setEnabled(not editor_mode)
-        self.frame_file_selector.setEnabled(not editor_mode)
-
-
-    def selectionChanged(self, text):
-        """
-        Slot called when a category is selected in the list of the config widget
-        """
-        self.tab_window.setCurrentWidget(self.list_items[str(text)])
-
-
-    def accept(self):
-        """
-        Check and apply the changes, then close the config window (OK button)
-        """
-        ok, errors_list = self.validateConfiguration(self.cfg_window_def)
-        if ok:
-            self.updateConfiguration(self.cfg_window_def, self.var_dict) #Update the configuration dict according to the new settings in our config window
-            QDialog.accept(self)
-            logger.info('New configuration OK')
-            #No more modification in progress
-            self.setEditInProgress(False)
-        else:
-            self.displayMessageBox(errors_list)
-
-    def applyChanges(self):
-        """
-        Apply changes without closing the window (allow to test some changes without reopening the config window each time)
-        """
-        ok, errors_list = self.validateConfiguration(self.cfg_window_def)
-        if ok:
-            self.updateConfiguration(self.cfg_window_def, self.var_dict) #Update the configuration dict according to the new settings in our config window
-            self.setResult(ConfigWindow.Applied) #Return a result code that is different from accepted and rejected
-            self.finished.emit(self.result())
-            logger.info('New configuration applied')
-            #No more modification in progress
-            self.setEditInProgress(False)
-        else:
-            self.displayMessageBox(errors_list)
-
-    def reject(self):
-        """
-        Reload our configuration widget with the values from the config file (=> Cancel the changes in the config window), then close the config window
-        """
-        self.affectValuesFromConfig(self.var_dict, self.configspec) # cannot be in the if statement - it is possible that the changeOccured was not fired
-        if not self.button_box.button(QDialogButtonBox.Close).isEnabled():
-            logger.info('New configuration cancelled')
-        self.setEditInProgress(False)
-        QDialog.reject(self)
-
-
-    def discardChanges(self):
-        """
-        Reload our configuration widget with the values from the config file (=> Cancel the changes in the config window). Don't close the config window
-        """
-        self.affectValuesFromConfig(self.var_dict, self.configspec)
-        logger.info('New configuration cancelled')
-
-
-    def displayMessageBox(self, errors_list):
-        """
-        Popup a message box in order to display an error message
-        @param errors_list: a string that contains all the errors
-        """
-        errors_list = self.tr('Please correct the following error(s):\n') + errors_list
-        error_message = QMessageBox(QMessageBox.Critical, self.tr('Invalid changes'), errors_list);
-        error_message.exec_()
 
 
     def setConfigSelectorCallback(self, selection_changed_callback, add_file_callback, remove_file_callback, duplicate_file_callback):
@@ -310,9 +180,6 @@ class ConfigWindow(QDialog):
                 #Connect the signals to call the callback when an action is done on the file selector
                 if self.selector_change_callback is not None:
                     self.cfg_file_selector.combobox.currentIndexChanged[int].connect(self.selector_change_callback)
-                button_duplicate.clicked.connect(self.configSelectorDuplicateFile)
-                button_add.clicked.connect(self.configSelectorAddFile)
-                button_remove.clicked.connect(self.configSelectorRemoveFile)
 
                 layout_file_selector = QHBoxLayout() #For displaying the optional file's selector widget
                 layout_file_selector.addWidget(self.cfg_file_selector)
@@ -341,109 +208,61 @@ class ConfigWindow(QDialog):
                 self.cfg_file_selector.setSpec({'string_list': [], 'comment': ''})
 
 
-    def configSelectorDuplicateFile(self):
-        """
-        Function called when the "Remove configuration file" is clicked in the optional config selector zone
-        """
-        title = self.tr('Duplicate a configuration file')
-        label = [self.tr("Enter a new filename (without extension):")]
-        value = [""]
-        filename_dialog = PopUpDialog(title, label, value)
 
-        if filename_dialog.result is not None and len(filename_dialog.result[0]) > 0:
-            #Call the callback function to duplicate the file
-            if self.selector_duplicate_callback is not None:
-                if self.selector_duplicate_callback(str(self.cfg_file_selector.getValue()), str(filename_dialog.result[0])) == False: #note: str() is needed for PyQT4
-                    self.displayMessageBox(self.tr('An error occured while duplicating the file "{0}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
-            else:
-                logger.warning("No callback defined for duplicating the file, nothing will happen!")
-
-
-    def configSelectorAddFile(self):
-        """
-        Function called when the "Remove configuration file" is clicked in the optional config selector zone
-        """
-        title = self.tr('Add a configuration file')
-        label = [self.tr("Enter filename (without extension):")]
-        value = [""]
-        filename_dialog = PopUpDialog(title, label, value)
-
-        if filename_dialog.result is not None and len(filename_dialog.result[0]) > 0:
-            if self.selector_add_callback is not None:
-                if self.selector_add_callback(str(filename_dialog.result[0])) == False:
-                    self.displayMessageBox(self.tr('An error occured while creating the file "{0}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
-            else:
-                logger.warning("No callback defined for adding the file, nothing will happen!")
-
-
-    def configSelectorRemoveFile(self):
-        """
-        Function called when the "Remove configuration file" is clicked in the optional config selector zone
-        """
-        confirmation_result = QMessageBox.question(self, self.tr('Delete configuration file?'), self.tr('Are you sure you want to permanently remove the file "{0}"'.format(self.cfg_file_selector.getValue())), QMessageBox.Ok | QMessageBox.Cancel);
-        if confirmation_result == QMessageBox.Yes or confirmation_result == QMessageBox.Ok:
-            #User has confirmed the file suppression, so let's go
-            if self.selector_remove_callback is not None:
-                if self.selector_remove_callback(str(self.cfg_file_selector.getValue())) == False:
-                    self.displayMessageBox(self.tr('An error occured while removing the file "{0}". Remove it manually'.format(self.cfg_file_selector.getValue())))
-            else:
-                logger.warning("No callback defined for removing the file, nothing will happen!")
-
-
-    def createWidgetFromDefinitionDict(self):
-        """
-        Automatically build a widget, based on dict definition of the items.
-        @return: a QWidget containing all the elements of the configuration window
-        """
-        logger.info('Creating configuration window')
-        definition = self.cfg_window_def
-
-        tab_widgets = OrderedDict()
-
-        #Create a dict with the sections' titles if not already defined. This dict contains sections' names as key and tabs' titles as values
-        if '__section_title__' not in definition:
-            definition['__section_title__'] = {}
-
-        #Compute all the sections
-        for section in definition:
-            #skip the special section __section_title__
-            if section == '__section_title__':
-                continue
-
-            #Create the title for the section if it doesn't already exist
-            if section not in definition['__section_title__']:
-                #The title for this section doesn't exist yet
-                if isinstance(definition[section], dict) and '__section_title__' in definition[section]:
-                    #The title for this section is defined into the section itself => we add the title to the dict containing all the titles
-                    definition['__section_title__'][section] = definition[section]['__section_title__']
-                else:
-                    #The title for this section is not defined anywhere, so we use the section name itself as a title
-                    definition['__section_title__'][section] = section.replace('_', ' ')
-
-            #Create the tab (and the widget) for the current section, if it doesn't exist yet
-            widget = None
-            for widget_label in tab_widgets:
-                if definition['__section_title__'][section] == widget_label:
-                    widget = tab_widgets[widget_label]
-                    break
-
-            if widget is None:
-                widget = QWidget()
-                tab_widgets[definition['__section_title__'][section]] = widget
-
-            #Create the tab content for this section
-            self.createWidgetSubSection(definition[section], widget)
-
-            #Add a stretch at the end of this subsection
-            if widget.layout() is not None:
-                widget.layout().addStretch()
-
-        #Add a QSpacer at the bottom of each widget, so that the items are placed on top of each tab
-        for widget in tab_widgets.values():
-            if widget.layout() is not None:
-                widget.layout().addStretch()
-
-        return tab_widgets
+    # def createWidgetFromDefinitionDict(self):
+    #     """
+    #     Automatically build a widget, based on dict definition of the items.
+    #     @return: a QWidget containing all the elements of the configuration window
+    #     """
+    #     logger.info('Creating configuration window')
+    #     definition = self.cfg_window_def
+    #
+    #     tab_widgets = OrderedDict()
+    #
+    #     #Create a dict with the sections' titles if not already defined. This dict contains sections' names as key and tabs' titles as values
+    #     if '__section_title__' not in definition:
+    #         definition['__section_title__'] = {}
+    #
+    #     #Compute all the sections
+    #     for section in definition:
+    #         #skip the special section __section_title__
+    #         if section == '__section_title__':
+    #             continue
+    #
+    #         #Create the title for the section if it doesn't already exist
+    #         if section not in definition['__section_title__']:
+    #             #The title for this section doesn't exist yet
+    #             if isinstance(definition[section], dict) and '__section_title__' in definition[section]:
+    #                 #The title for this section is defined into the section itself => we add the title to the dict containing all the titles
+    #                 definition['__section_title__'][section] = definition[section]['__section_title__']
+    #             else:
+    #                 #The title for this section is not defined anywhere, so we use the section name itself as a title
+    #                 definition['__section_title__'][section] = section.replace('_', ' ')
+    #
+    #         #Create the tab (and the widget) for the current section, if it doesn't exist yet
+    #         widget = None
+    #         for widget_label in tab_widgets:
+    #             if definition['__section_title__'][section] == widget_label:
+    #                 widget = tab_widgets[widget_label]
+    #                 break
+    #
+    #         if widget is None:
+    #             widget = QWidget()
+    #             tab_widgets[definition['__section_title__'][section]] = widget
+    #
+    #         #Create the tab content for this section
+    #         self.createWidgetSubSection(definition[section], widget)
+    #
+    #         #Add a stretch at the end of this subsection
+    #         if widget.layout() is not None:
+    #             widget.layout().addStretch()
+    #
+    #     #Add a QSpacer at the bottom of each widget, so that the items are placed on top of each tab
+    #     for widget in tab_widgets.values():
+    #         if widget.layout() is not None:
+    #             widget.layout().addStretch()
+    #
+    #     return tab_widgets
 
 
     def createWidgetSubSection(self, subdefinition, section_widget):
@@ -453,16 +272,16 @@ class ConfigWindow(QDialog):
         @param section_widget: the widget that host the subwidgets
         @return: section_widget (for recursive call)
         """
-        vertical_box = section_widget.layout()
-        if vertical_box is None:
-            vertical_box = QVBoxLayout()
-            section_widget.setLayout(vertical_box)
-        vertical_box.setSpacing(0) #Don't use too much space, it makes the option window too big otherwise
-
-        if isinstance(subdefinition, dict):
-            vertical_box.addWidget(subdefinition.get('__subtitle__', CfgSubtitle()))
-
-        self.createWidgetSubSectionWithSubLevels(subdefinition, section_widget)
+        # vertical_box = section_widget.layout()
+        # if vertical_box is None:
+        #     vertical_box = QVBoxLayout()
+        #     section_widget.setLayout(vertical_box)
+        # vertical_box.setSpacing(0) #Don't use too much space, it makes the option window too big otherwise
+        #
+        # if isinstance(subdefinition, dict):
+        #     vertical_box.addWidget(subdefinition.get('__subtitle__', CfgSubtitle()))
+        #
+        # self.createWidgetSubSectionWithSubLevels(subdefinition, section_widget)
 
 
     def createWidgetSubSectionWithSubLevels(self, subdefinition, section_widget):
@@ -473,26 +292,24 @@ class ConfigWindow(QDialog):
         @return: section_widget (for recursive call)
         """
 
-        vertical_box = section_widget.layout()
-
-        if isinstance(subdefinition, dict):
-            for subsection in subdefinition:
-                if subsection == '__section_title__':
-                    #skip the special section
-                    continue
-
-                #Browse sublevels
-                self.createWidgetSubSectionWithSubLevels(subdefinition[subsection], section_widget) #Recursive call, all the nested configuration item will appear at the same level
-        else:
-            if isinstance(subdefinition, (QWidget, QLayout)):
-                vertical_box.addWidget(subdefinition)
-                if hasattr(subdefinition, 'setChangeSlot'):
-                    subdefinition.setChangeSlot(self.changeOccured)
-            else:
-                #Item should be a layout or a widget
-                logger.error("item subdefinition is incorrect")
-
-        return section_widget
+        # vertical_box = section_widget.layout()
+        #
+        # if isinstance(subdefinition, dict):
+        #     for subsection in subdefinition:
+        #         if subsection == '__section_title__':
+        #             #skip the special section
+        #             continue
+        #
+        #         #Browse sublevels
+        #         self.createWidgetSubSectionWithSubLevels(subdefinition[subsection], section_widget) #Recursive call, all the nested configuration item will appear at the same level
+        # else:
+        #     if isinstance(subdefinition, (QWidget, QLayout)):
+        #         vertical_box.addWidget(subdefinition)
+        #     else:
+        #         #Item should be a layout or a widget
+        #         logger.error("item subdefinition is incorrect")
+        #
+        # return section_widget
 
 
     def affectValuesFromConfig(self, config, configspec):
@@ -501,13 +318,13 @@ class ConfigWindow(QDialog):
         @param config: data readed from the configfile. This dict is created by ConfigObj module.
         @param configspec: specifications of the configfile. This variable is created by ConfigObj module.
         """
-        self.var_dict = config #This is the data from the configfile (dictionary created by ConfigObj class)
-        self.configspec = configspec #This is the specifications for all the entries defined in the config file
-
-        self.setValuesFromConfig(self.cfg_window_def, self.var_dict, self.configspec)
+        # self.var_dict = config #This is the data from the configfile (dictionary created by ConfigObj class)
+        # self.configspec = configspec #This is the specifications for all the entries defined in the config file
+        #
+        # self.setValuesFromConfig(self.cfg_window_def, self.var_dict, self.configspec)
 
         #No modification in progress for now
-        self.setEditInProgress(False)
+        # self.setEditInProgress(False)
 
     def setValuesFromConfig(self, window_def, config, configspec):
         """
@@ -518,30 +335,30 @@ class ConfigWindow(QDialog):
         @param configspec: specifications of the configfile. This variable is created by ConfigObj module.
         """
         #Compute all the sections
-        for section in window_def:
-            #skip the special section __section_title__
-            if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
-                continue
-
-            if config is not None and section in config:
-                if isinstance(window_def[section], dict):
-                    #Browse sublevels
-                    configspec_sub = None
-                    if configspec is not None and section in configspec:
-                        configspec_sub = configspec[section]
-                    self.setValuesFromConfig(window_def[section], config[section], configspec_sub) #Recursive call, until we find a real item (not a dictionnary with subtree)
-                else:
-                    if isinstance(window_def[section], (QWidget, QLayout)):
-                        #assign the configuration retrieved from the configspec object of the ConfigObj
-                        if configspec is not None and section in configspec:
-                            window_def[section].setSpec(self.configspecParser(configspec[section], configspec.comments[section]))
-                        #assign the value that was readed from the configfile
-                        window_def[section].setValue(config[section])
-                    else:
-                        #Item should be a layout or a widget
-                        logger.warning("item {0} is not a widget, can't set it's value!".format(window_def[section]))
-            else:
-                logger.error("can't assign values, item or section {0} not found in config file!".format(section))
+        # for section in window_def:
+        #     #skip the special section __section_title__
+        #     if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
+        #         continue
+        #
+        #     if config is not None and section in config:
+        #         if isinstance(window_def[section], dict):
+        #             #Browse sublevels
+        #             configspec_sub = None
+        #             if configspec is not None and section in configspec:
+        #                 configspec_sub = configspec[section]
+        #             self.setValuesFromConfig(window_def[section], config[section], configspec_sub) #Recursive call, until we find a real item (not a dictionnary with subtree)
+        #         else:
+        #             if isinstance(window_def[section], (QWidget, QLayout)):
+        #                 #assign the configuration retrieved from the configspec object of the ConfigObj
+        #                 if configspec is not None and section in configspec:
+        #                     window_def[section].setSpec(self.configspecParser(configspec[section], configspec.comments[section]))
+        #                 #assign the value that was readed from the configfile
+        #                 window_def[section].setValue(config[section])
+        #             else:
+        #                 #Item should be a layout or a widget
+        #                 logger.warning("item {0} is not a widget, can't set it's value!".format(window_def[section]))
+        #     else:
+        #         logger.error("can't assign values, item or section {0} not found in config file!".format(section))
 
 
     def configspecParser(self, configspec, comments):
@@ -670,16 +487,6 @@ class ConfigWindow(QDialog):
         # remove empty elements and remove leading and trailing spaces
         string_list = [string.strip() for string in string_list if string]
         return string_list
-
-
-    def changeOccured(self):
-        """
-        This function (slot) is called whenever a modification occurs in the configuration window.
-        It enables "Apply" and "OK" buttons, plus disable the configfile selector.
-        """
-        #There are some changes, we swith to edit mode
-        self.setEditInProgress(True)
-
 
     def validateConfiguration(self, window_def, result_string = '', result_bool = True):
         """
@@ -856,89 +663,89 @@ class CfgCheckBox(CfgBase):
         self.blockSignals(False)
 
 
-class CfgSpinBox(CfgBase):
-    """
-    Subclassed QSpinBox to match our needs.
-    """
-
-    def __init__(self, text, unit = None, minimum = None, maximum = None, parent = None):
-        """
-        Initialization of the CfgSpinBox class (used for int values).
-        @param text: text string associated with the SpinBox
-        @param minimum: min value (int)
-        @param minimum: max value (int)
-        """
-        CfgBase.__init__(self, parent)
-
-        self.label = QLabel(text, parent)
-
-        self.spinbox = QSpinBox(parent)
-        self.spinbox.setMinimumWidth(200)  # Provide better alignment with other items
-
-        if unit is not None:
-            self.setUnit(unit)
-
-        layout = QHBoxLayout(parent)
-        layout.addWidget(self.label)
-        layout.addStretch()
-        layout.addWidget(self.spinbox)
-        self.setLayout(layout)
-
-        self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
-
-    def setSpec(self, spec):
-        """
-        Set the specifications for the item (min/max values, ...)
-        @param spec: the specifications dict (can contain the following keys: minimum, maximum, comment, string_list)
-        """
-        if spec['minimum'] is not None:
-            self.spinbox.setMinimum(spec['minimum'])
-        else:
-            self.spinbox.setMinimum(-1000000000) #if no value is defined for the minimum, use a reasonable value
-
-        if spec['maximum'] is not None:
-            self.spinbox.setMaximum(spec['maximum'])
-        else:
-            self.spinbox.setMaximum(1000000000) #if no value is defined for the maximum, use a more reasonable value than 99 (default value in QT) ...
-
-        if spec['comment']:
-            self.setWhatsThis(spec['comment'])
-
-    def setChangeSlot(self, changeNotifyer):
-        """
-        Assign a notifyier slot (this slot is called whenever the state of the widget changes)
-        @param changeNotifyer: the function (slot) that is called in case of change
-        """
-        self.spinbox.valueChanged.connect(changeNotifyer)
-
-    def setUnit(self, unit):
-        """
-        Set the unit of the SpinBox (unit is displayed just after the value)
-        @param unit: string with the unit used for the spinbox
-        """
-        self.spinbox.setSuffix(unit)
-
-    def validateValue(self):
-        """
-        This item can't be wrong, so we always return true and an empty string
-        @return (True, ''):
-        """
-        return (True, '')
-
-    def getValue(self):
-        """
-        @return: the current value of the QSpinBox
-        """
-        return self.spinbox.value()
-
-    def setValue(self, value):
-        """
-        Assign the value for our object
-        @param value: int value
-        """
-        self.spinbox.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
-        self.spinbox.setValue(value)
-        self.spinbox.blockSignals(False)
+# class CfgSpinBox(CfgBase):
+#     """
+#     Subclassed QSpinBox to match our needs.
+#     """
+#
+#     def __init__(self, text, unit = None, minimum = None, maximum = None, parent = None):
+#         """
+#         Initialization of the CfgSpinBox class (used for int values).
+#         @param text: text string associated with the SpinBox
+#         @param minimum: min value (int)
+#         @param minimum: max value (int)
+#         """
+#         CfgBase.__init__(self, parent)
+#
+#         self.label = QLabel(text, parent)
+#
+#         self.spinbox = QSpinBox(parent)
+#         self.spinbox.setMinimumWidth(200)  # Provide better alignment with other items
+#
+#         if unit is not None:
+#             self.setUnit(unit)
+#
+#         layout = QHBoxLayout(parent)
+#         layout.addWidget(self.label)
+#         layout.addStretch()
+#         layout.addWidget(self.spinbox)
+#         self.setLayout(layout)
+#
+#         self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
+#
+#     def setSpec(self, spec):
+#         """
+#         Set the specifications for the item (min/max values, ...)
+#         @param spec: the specifications dict (can contain the following keys: minimum, maximum, comment, string_list)
+#         """
+#         if spec['minimum'] is not None:
+#             self.spinbox.setMinimum(spec['minimum'])
+#         else:
+#             self.spinbox.setMinimum(-1000000000) #if no value is defined for the minimum, use a reasonable value
+#
+#         if spec['maximum'] is not None:
+#             self.spinbox.setMaximum(spec['maximum'])
+#         else:
+#             self.spinbox.setMaximum(1000000000) #if no value is defined for the maximum, use a more reasonable value than 99 (default value in QT) ...
+#
+#         if spec['comment']:
+#             self.setWhatsThis(spec['comment'])
+#
+#     def setChangeSlot(self, changeNotifyer):
+#         """
+#         Assign a notifyier slot (this slot is called whenever the state of the widget changes)
+#         @param changeNotifyer: the function (slot) that is called in case of change
+#         """
+#         self.spinbox.valueChanged.connect(changeNotifyer)
+#
+#     def setUnit(self, unit):
+#         """
+#         Set the unit of the SpinBox (unit is displayed just after the value)
+#         @param unit: string with the unit used for the spinbox
+#         """
+#         self.spinbox.setSuffix(unit)
+#
+#     def validateValue(self):
+#         """
+#         This item can't be wrong, so we always return true and an empty string
+#         @return (True, ''):
+#         """
+#         return (True, '')
+#
+#     def getValue(self):
+#         """
+#         @return: the current value of the QSpinBox
+#         """
+#         return self.spinbox.value()
+#
+#     def setValue(self, value):
+#         """
+#         Assign the value for our object
+#         @param value: int value
+#         """
+#         self.spinbox.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
+#         self.spinbox.setValue(value)
+#         self.spinbox.blockSignals(False)
 
 
 class CorrectedDoubleSpinBox(QDoubleSpinBox):
@@ -979,38 +786,38 @@ class CorrectedDoubleSpinBox(QDoubleSpinBox):
             return (QValidator.Acceptable, pos)
 
 
-class CfgDoubleSpinBox(CfgSpinBox):
-    """
-    Subclassed QDoubleSpinBox to match our needs.
-    """
-
-    def __init__(self, text, unit = None, minimum = None, maximum = None, precision = None, parent = None):
-        """
-        Initialization of the CfgDoubleSpinBox class (used for float values).
-        @param text: text string associated with the SpinBox
-        @param minimum: min value (float)
-        @param minimum: max value (float)
-        """
-        CfgBase.__init__(self, parent)  # skip the init of CfgSpinBox - we want a "corrected" spinbox
-
-        self.label = QLabel(text, parent)
-
-        self.spinbox = QSpinBox(parent)
-        self.spinbox = CorrectedDoubleSpinBox(parent)
-        self.spinbox.setMinimumWidth(200)  # Provide better alignment with other items
-        if precision is not None:
-            self.spinbox.setDecimals(precision)
-
-        if unit is not None:
-            self.setUnit(unit)
-
-        layout = QHBoxLayout(parent)
-        layout.addWidget(self.label)
-        layout.addStretch()
-        layout.addWidget(self.spinbox)
-        self.setLayout(layout)
-
-        self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
+# class CfgDoubleSpinBox(CfgSpinBox):
+#     """
+#     Subclassed QDoubleSpinBox to match our needs.
+#     """
+#
+#     def __init__(self, text, unit = None, minimum = None, maximum = None, precision = None, parent = None):
+#         """
+#         Initialization of the CfgDoubleSpinBox class (used for float values).
+#         @param text: text string associated with the SpinBox
+#         @param minimum: min value (float)
+#         @param minimum: max value (float)
+#         """
+#         CfgBase.__init__(self, parent)  # skip the init of CfgSpinBox - we want a "corrected" spinbox
+#
+#         self.label = QLabel(text, parent)
+#
+#         self.spinbox = QSpinBox(parent)
+#         self.spinbox = CorrectedDoubleSpinBox(parent)
+#         self.spinbox.setMinimumWidth(200)  # Provide better alignment with other items
+#         if precision is not None:
+#             self.spinbox.setDecimals(precision)
+#
+#         if unit is not None:
+#             self.setUnit(unit)
+#
+#         layout = QHBoxLayout(parent)
+#         layout.addWidget(self.label)
+#         layout.addStretch()
+#         layout.addWidget(self.spinbox)
+#         self.setLayout(layout)
+#
+#         self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
 
 
 class CfgLineEdit(CfgBase):

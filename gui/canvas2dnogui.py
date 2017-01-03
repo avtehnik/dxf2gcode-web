@@ -38,8 +38,8 @@ from core.point import Point
 from core.shape import Shape
 from core.boundingbox import BoundingBox
 from core.stmove import StMove
-from gui.wpzero import WpZero
-from gui.arrow import Arrow
+# from gui.wpzero import WpZero
+# from gui.arrow import Arrow
 from gui.routetext import RouteText
 
 import globals.globals as g
